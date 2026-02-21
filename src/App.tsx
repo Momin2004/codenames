@@ -16,11 +16,10 @@ export default function App() {
 }
 
 function Content() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
+  const { viewer } =
+    useQuery(api.GameFunctions.getMostRecentActiveGame, {
     }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
+  const addNumber = useMutation(api.GameFunctions.createGame);
 
   if (viewer === undefined || numbers === undefined) {
     return (
@@ -41,7 +40,7 @@ function Content() {
         <button
           className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
           onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
+            console.log("test")
           }}
         >
           Add a random number
