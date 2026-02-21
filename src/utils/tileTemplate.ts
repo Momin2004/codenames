@@ -4,55 +4,67 @@ export const tileTemplate: Tile[] =
   [
     {
       flipped: false,
-      type: TileType.White
-    },
-
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: true,
-      type: TileType.White
-    },
-    {
-      flipped: true,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: true,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
     },
     {
       flipped: false,
-      type: TileType.White
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
+    },
+    {
+      flipped: false,
+      type: TileType.None
     }
+
   ]
