@@ -6,16 +6,17 @@ export const tileTemplate: Tile[] =
       flipped: false,
       type: TileType.White
     },
+
     {
       flipped: false,
-      type: TileType.Red
+      type: TileType.White
     },
     {
-      flipped: false,
-      type: TileType.Blue
+      flipped: true,
+      type: TileType.White
     },
     {
-      flipped: false,
+      flipped: true,
       type: TileType.White
     },
     {
@@ -23,55 +24,7 @@ export const tileTemplate: Tile[] =
       type: TileType.White
     },
     {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.Black
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
-      type: TileType.White
-    },
-    {
-      flipped: false,
+      flipped: true,
       type: TileType.White
     },
     {

@@ -4,7 +4,7 @@ import NavBar from "./NavBar";
 export default function Layout() {
   return (
     <div style={{ minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <header
+      {/* <header
         style={{
           padding: "12px 16px",
           borderBottom: "1px solid #ddd",
@@ -15,9 +15,9 @@ export default function Layout() {
         }}
       >
         <strong>My Convex App</strong>
-      </header>
+      </header> */}
 
-      <NavBar />
+      {/* <NavBar /> */}
 
       <main style={{ padding: 16 }}>
         <Outlet />

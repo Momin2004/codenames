@@ -1,5 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import Layout from "./components/Layout";
+import { Route, Routes } from "react-router-dom";
+import Layout from "./utils/Layout";
 import HomeOverview from "./pages/HomeOverview";
 import GameOverview from "./pages/GameOverview";
 
@@ -8,9 +8,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<Navigate to="/home" replace />} />
-        <Route path="home" element={<HomeOverview />} />
-        <Route path="game" element={<GameOverview />} />
+        <Route path="dd" element={<HomeOverview />} />
+        <Route path="" element={<GameOverview />} />
       </Route>
     </Routes>
   );
