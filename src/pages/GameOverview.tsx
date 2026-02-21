@@ -1,10 +1,10 @@
-import { Board } from "@/components/board/Board";
+import { BoardDisplay } from "@/components/board/BoardDisplay";
 
 export default function GameOverview() {
   return (
     <div>
       <h1>Game</h1>
-      <Board height={5} width={5} />
+      <BoardDisplay />
     </div>
   );
 }

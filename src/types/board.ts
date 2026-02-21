@@ -9,8 +9,8 @@ export interface Tile {
 
 export enum TileType {
   None,
-  blue,
-  red,
-  white,
-  black
+  Blue,
+  Red,
+  White,
+  Black
 }

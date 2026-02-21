@@ -1,24 +1,27 @@
+import { Tile } from "@/types/board";
 import { createSxStyles } from "@/utils/createSxStyles";
 import { Box, Card, Typography } from "@mui/material";
 
-interface TileProps {
-  flipped?: boolean;
+interface TileDisplayProps {
+  tile: Tile;
 }
 
-const useStyles = (flipped: boolean) =>
+const useStyles = (tile: Tile) =>
   createSxStyles({
     root: {
       width: 128,
       height: 128,
       perspective: "1000px",
+
     },
     flipper: {
       position: "relative",
       width: "100%",
       height: "100%",
-      transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+      transform: tile.flipped ? "rotateY(180deg)" : "rotateY(0deg)",
       transition: "transform 0.6s",
       transformStyle: "preserve-3d",
+
     },
     face: {
       position: "absolute",
@@ -28,6 +31,7 @@ const useStyles = (flipped: boolean) =>
       justifyContent: "center",
       backfaceVisibility: "hidden",
       WebkitBackfaceVisibility: "hidden",
+      borderRadius: 3,
     },
     front: {
 
@@ -37,9 +41,9 @@ const useStyles = (flipped: boolean) =>
     },
   });
 
-export const Tile = ({ flipped = false }: TileProps) => {
-  const styles = useStyles(flipped);
-
+export const TileDisplay = ({ tile }: TileDisplayProps) => {
+  const styles = useStyles(tile);
+  console.log(tile)
   return (
     <Box sx={styles.root}>
       <Box sx={styles.flipper}>
