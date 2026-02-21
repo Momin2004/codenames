@@ -48,7 +48,7 @@ export default defineSchema({
           name: v.string(),
           team: v.int64(),
           task: v.int64(),
-          orginizer: v.boolean(),
+          organizer: v.boolean(),
         })
       ),
       currentGame: v.union(v.id("game"), v.null()),

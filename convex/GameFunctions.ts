@@ -29,7 +29,7 @@ export const createLobby = mutation({
         name: args.username,
         team: BigInt(0),
         task: BigInt(0),
-        orginizer: true
+        organizer: true
       }],
       currentGame: null,
       currentDeck: null,
@@ -39,6 +39,61 @@ export const createLobby = mutation({
     return { lobbyid }
   }
 })
+
+export const addPlayer = mutation({
+  args: {
+    username: v.string(),
+    lobbyId: v.id("lobby"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    const player = {
+      name: args.username,
+      team: 0n,
+      task: 0n,
+      organizer: false, 
+    };
+
+    await ctx.db.patch(args.lobbyId, {
+      players: [...(lobby.players ?? []), player],
+    });
+
+    return { lobbyId: args.lobbyId };
+  },
+});
+
+export const removePlayer = mutation({
+  args: {
+    username: v.string(),
+    lobbyId: v.id("lobby"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    await ctx.db.patch(args.lobbyId, {
+      players: (lobby.players ?? []).filter((p) => p.name !== args.username),
+    });
+
+    return { lobbyId: args.lobbyId };
+  },
+});
+
+export const getLobbyById = query({
+  args: {
+    lobbyId: v.id("lobby"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+
+    return lobby;
+  },
+});
 
 export const createGame = mutation({
   args: {
