@@ -18,6 +18,28 @@ export const getMostRecentActiveGame = query({
   },
 });
 
+export const createLobby = mutation({
+  args: {
+    username: v.string(),
+  },
+
+  handler: async(ctx, args) => {
+    const lobby = {
+      players: [{
+        name: args.username,
+        team: BigInt(0),
+        task: BigInt(0),
+        orginizer: true
+      }],
+      currentGame: null,
+      currentDeck: null,
+    }
+    const lobbyid = await ctx.db.insert("lobby", lobby);
+
+    return { lobbyid }
+  }
+})
+
 export const createGame = mutation({
   args: {
     deckId: v.id("deck"),
@@ -83,5 +105,6 @@ function createCodenamesBoard(words: string[]) {
     word,
     type: BigInt(shuffledTypes[index]),
     isGuessed: false,
-  }));
+  }))
 }
+
