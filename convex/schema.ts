@@ -1,10 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v, VArray } from "convex/values";
 
-// Board schema matching the structure you described.
-// - `tiles`: array of tile objects
-// - `turns`: sequential turn records (hint is optional)
-// - `players`: player list with team and task
+
 export default defineSchema({
   game: defineTable(
     v.object({
@@ -24,7 +21,7 @@ export default defineSchema({
             v.object({ amount: v.int64(), word: v.string() })
           ),
           guesses: v.array(
-            v.object({ tileIndex: v.int64(), playerId: v.any() })
+            v.object({ tileIndex: v.int64(), playerId: v.id("player") })
           ),
           team: v.int64(),
         })
@@ -43,5 +40,20 @@ export default defineSchema({
       words: v.array(v.string()),
       description: v.string(),
     })
-  )
+  ),
+  lobby: defineTable(
+    v.object({
+      players: v.array(
+        v.object({
+          name: v.string(),
+          team: v.int64(),
+          task: v.int64(),
+          orginizer: v.boolean(),
+        })
+      ),
+      passcode: v.string(),
+      currentGame: v.id("game"),
+      currentDeck: v.id("deck"),
+    })
+  ),
 });

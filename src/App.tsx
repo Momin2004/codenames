@@ -16,11 +16,10 @@ export default function App() {
 }
 
 function Content() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.getBoard, {
-      count: 10,
+  const { viewer } =
+    useQuery(api.GameFunctions.getMostRecentActiveGame, {
     }) ?? {};
-  const addNumber = useMutation(api.myFunctions.createBoard);
+  const addNumber = useMutation(api.GameFunctions.createGame);
 
   if (viewer === undefined || numbers === undefined) {
     return (
