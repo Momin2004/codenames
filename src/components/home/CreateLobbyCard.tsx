@@ -3,6 +3,8 @@ import AddIcon from "@mui/icons-material/Add";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { createSxStyles } from "@/utils/createSxStyles";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api"
 
 const schema = yup.object({
   username: yup
@@ -72,6 +74,7 @@ const useStyles = () =>
 
 export const CreateLobbyCard = () => {
   const styles = useStyles();
+  const createLobby = useMutation(api.GameFunctions.createLobby);
 
   return (
     <Box sx={styles.root}>
@@ -80,9 +83,10 @@ export const CreateLobbyCard = () => {
           <Formik
             initialValues={{ username: "" }}
             validationSchema={schema}
-            onSubmit={(values) => {
+            onSubmit={async (values) => {
               const username = values.username.trim();
               console.log("Create lobby for:", username);
+              await createLobby({ username })
             }}
           >
             {({

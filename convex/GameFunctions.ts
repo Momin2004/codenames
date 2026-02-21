@@ -23,7 +23,7 @@ export const createLobby = mutation({
     username: v.string(),
   },
 
-  handler: async(ctx, args) => {
+  handler: async (ctx, args) => {
     const lobby = {
       players: [{
         name: args.username,
@@ -54,7 +54,7 @@ export const addPlayer = mutation({
       name: args.username,
       team: 0n,
       task: 0n,
-      organizer: false, 
+      organizer: false,
     };
 
     await ctx.db.patch(args.lobbyId, {
