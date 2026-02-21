@@ -51,9 +51,8 @@ export default defineSchema({
           orginizer: v.boolean(),
         })
       ),
-      passcode: v.string(),
-      currentGame: v.id("game"),
-      currentDeck: v.id("deck"),
+      currentGame: v.union(v.id("game"), v.null()),
+      currentDeck: v.union(v.id("deck"), v.null()),
     })
   ),
 });
