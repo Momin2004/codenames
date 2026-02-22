@@ -87,7 +87,6 @@ export const LobbyDisplay = () => {
       lobbyId ? { lobbyId: lobbyId as Id<"lobby"> } : "skip"
     );
   }
-
   catch {
     return renderShell(
       <Box sx={styles.statusBody}>
