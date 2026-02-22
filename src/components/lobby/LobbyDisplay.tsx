@@ -1,26 +1,15 @@
-import { Box, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import { Formik } from "formik";
-import * as yup from "yup";
+import { Box, Button, Card, CardContent, CircularProgress, Divider, Stack, Typography } from "@mui/material";
 import { createSxStyles } from "@/utils/createSxStyles";
 import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api"
-import { useNavigate, useParams } from "react-router-dom";
-import { Id } from "../../../convex/_generated/dataModel";
-
-const schema = yup.object({
-  username: yup
-    .string()
-    .trim()
-    .required("Username is required")
-    .min(2, "At least 2 characters")
-    .max(30, "Bro thats enough"),
-});
+import { api } from "../../../convex/_generated/api";
+import { useParams } from "react-router-dom";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { Padding } from "@mui/icons-material";
 
 const useStyles = () =>
   createSxStyles({
     root: {
-      width: "min(750px, 100%)",
+
     },
     card: {
       width: "100%",
@@ -42,42 +31,55 @@ const useStyles = () =>
       letterSpacing: 0.4,
       textAlign: "center",
     },
-    inputSection: {
+    statusBody: {
+      minHeight: '100%',
+      display: "grid",
+      placeItems: "center",
+      textAlign: "center",
+    },
+    codeBox: {
       width: "100%",
-      maxWidth: 420,
-
-      "& .MuiInputLabel-root": {
-        color: "text.secondary",
-      },
-
-      "& .MuiOutlinedInput-root": {
-        borderRadius: 2,
-        backgroundColor: "rgba(255,255,255,0.02)",
-
-        "& fieldset": {
-          borderColor: "rgba(68,161,148,0.30)",
-        },
-        "&:hover fieldset": {
-          borderColor: "primary.main",
-        },
-        "&.Mui-focused fieldset": {
-          borderColor: "primary.main",
-        },
-      },
+      p: 1.5,
+      borderRadius: 2,
+      border: "1px solid",
+      borderColor: "rgba(68,161,148,0.30)",
+      bgcolor: "rgba(255,255,255,0.02)",
     },
-    submitButton: {
-      width: '100%',
-      py: 1.25,
-      px: 2.5,
-      borderRadius: 1.5,
-      boxShadow: "0 8px 20px rgba(68,161,148,0.25)",
+    playersSection: {
+      width: "100%",
     },
+    playerRow: {
+      width: "100%",
+      p: 1.5,
+      borderRadius: 2,
+      border: "1px solid",
+      borderColor: "rgba(255,255,255,0.08)",
+      bgcolor: "rgba(255,255,255,0.02)",
+    },
+    actions: {
+      width: "100%",
+      display: "flex",
+      gap: 1,
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+    },
+    button: {
+      margin: 2
+    }
   });
 
 export const LobbyDisplay = () => {
   const styles = useStyles();
   const { lobbyId } = useParams();
-  if (!lobbyId) return <div>Missing lobby id</div>;
+
+  const renderShell = (content: React.ReactNode) => (
+    <Box sx={styles.root}>
+      <Card elevation={0} sx={styles.card}>
+        <CardContent sx={styles.cardContent}>{content}</CardContent>
+      </Card>
+    </Box>
+  );
+
   var lobby;
   try {
     lobby = useQuery(
@@ -85,25 +87,88 @@ export const LobbyDisplay = () => {
       lobbyId ? { lobbyId: lobbyId as Id<"lobby"> } : "skip"
     );
   }
-  catch (e) {
-    return (
-      <>
-        <Typography variant="h5" fontWeight={700} sx={styles.title}>Lobby not found </Typography>
-        <Typography color="secondary">
-          This lobby may have been deleted or the link is invalid.
-        </Typography>
-      </>
+
+  catch {
+    return renderShell(
+      <Box sx={styles.statusBody}>
+        <Stack spacing={1} alignItems="center">
+          <Typography variant="h5" fontWeight={700} sx={styles.title}>
+
+          </Typography>
+          <Typography color="text.secondary" sx={{ paddingBottom: 2 }}>
+            This lobby may have been deleted or the link is invalid.
+          </Typography>
+          <Button variant={"outlined"} sx={styles.button}>
+            Back to main menu
+          </Button>
+        </Stack>
+      </Box>
     )
   }
-  if (lobby === undefined) return <Typography variant="h5" fontWeight={700} sx={styles.title}>Loading...</Typography>
 
-  return (
-    <Box sx={styles.root}>
-      <Card elevation={0} sx={styles.card}>
-        <CardContent sx={styles.cardContent}>
+  if (lobby === undefined || lobby === null) {
+    return renderShell(
+      <Box sx={styles.statusBody}>
+        <Stack spacing={2} alignItems="center">
+          <CircularProgress size={28} />
+          <Typography variant="h6">Loading lobby...</Typography>
+        </Stack>
+      </Box>
+    );
+  }
 
-        </CardContent>
-      </Card>
-    </Box>
+  const copyInviteLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+  };
+
+  return renderShell(
+    <Stack spacing={3}>
+      <Typography variant="h4" fontWeight={700} sx={styles.title}>
+        Lobby
+      </Typography>
+
+      <Box sx={styles.codeBox}>
+        <Typography variant="caption" color="text.secondary">
+          Lobby ID
+        </Typography>
+        <Typography variant="body1" sx={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+          {lobbyId}
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      <Stack spacing={1.5} sx={styles.playersSection}>
+        <Typography variant="h6" fontWeight={700}>
+          Players ({lobby.players.length})
+        </Typography>
+
+        {lobby.players.map((player, index) => (
+          <Box key={`${player.name}-${index}`} sx={styles.playerRow}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography>{player.name}</Typography>
+              {player.organizer && (
+                <Typography variant="caption" color="primary.main" fontWeight={700}>
+                  HOST
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+
+      <Typography color="text.secondary">
+        Waiting for players to join...
+      </Typography>
+
+      <Box sx={styles.actions}>
+        <Button variant="outlined" onClick={copyInviteLink}>
+          Copy Invite Link
+        </Button>
+        <Button variant="contained" disabled={lobby.players.length < 2}>
+          Start Game
+        </Button>
+      </Box>
+    </Stack>
   );
 };

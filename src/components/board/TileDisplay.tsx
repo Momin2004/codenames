@@ -9,7 +9,7 @@ interface TileDisplayProps {
 const useStyles = (tile: Tile) =>
   createSxStyles({
     root: {
-      width: 128,
+      width: 160,
       height: 128,
       perspective: "1000px",
 
