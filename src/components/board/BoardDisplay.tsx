@@ -26,9 +26,7 @@ export const BoardDisplay = ({
   const styles = useStyles(columns);
 
   return (
-    <Box
-      sx={styles.grid}
-    >
+    <Box sx={styles.grid}>
       {tiles.map((tile) => (
         <TileDisplay tile={tile} />
       ))}

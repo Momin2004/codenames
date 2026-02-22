@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { createSxStyles } from "@/utils/createSxStyles";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api"
+import { useNavigate } from "react-router-dom";
 
 const schema = yup.object({
   username: yup
@@ -74,6 +75,7 @@ const useStyles = () =>
 
 export const CreateLobbyCard = () => {
   const styles = useStyles();
+  const navigate = useNavigate();
   const createLobby = useMutation(api.GameFunctions.createLobby);
 
   return (
@@ -85,8 +87,9 @@ export const CreateLobbyCard = () => {
             validationSchema={schema}
             onSubmit={async (values) => {
               const username = values.username.trim();
-              console.log("Create lobby for:", username);
-              await createLobby({ username })
+              const result = await createLobby({ username });
+              navigate(`/lobby/${result.lobbyid}`);
+              console.log('stiull there')
             }}
           >
             {({

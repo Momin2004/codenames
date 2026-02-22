@@ -1,3 +1,4 @@
+import { LobbyDisplay } from "@/components/lobby/LobbyDisplay";
 import { Box } from "@mui/material";
 
 export default function LobbyOverview() {
@@ -33,7 +34,7 @@ export default function LobbyOverview() {
       />
 
       <Box sx={{ position: "relative", zIndex: 1 }}>
-
+        <LobbyDisplay />
       </Box>
     </Box>
   );

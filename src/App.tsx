@@ -11,7 +11,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route path="" element={<HomeOverview />} />
         <Route path="ss" element={<GameOverview />} />
-        <Route path="" element={<LobbyOverview />} />
+        <Route path="lobby/:lobbyId" element={<LobbyOverview />} />
       </Route>
     </Routes>
   );
