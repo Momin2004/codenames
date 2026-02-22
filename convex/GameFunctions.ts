@@ -2,47 +2,28 @@ import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 
-export const getMostRecentActiveGame = query({
-  args: {},
-  handler: async (ctx) => {
-    const game = await ctx.db
-      .query("game")
-      .filter((q) => q.eq(q.field("active"), true))
-      .order("desc")
-      .first();
-
-    return {
-      viewer: (await ctx.auth.getUserIdentity())?.name ?? null,
-      game: game ?? null,
-    };
-  },
-});
-
 export const createLobby = mutation({
   args: {
-    username: v.string(),
+    admin: v.id("player"),
   },
 
   handler: async(ctx, args) => {
     const lobby = {
-      players: [{
-        name: args.username,
-        team: BigInt(0),
-        task: BigInt(0),
-        organizer: true
-      }],
+      players: [args.admin],
       currentGame: null,
       currentDeck: null,
     }
     const lobbyid = await ctx.db.insert("lobby", lobby);
 
-    return { lobbyid }
+    await ctx.db.patch(args.admin, { organizer: true,  currentLobby: lobbyid});
+
+    return { lobbyid: lobbyid }
   }
 })
 
 export const addPlayer = mutation({
   args: {
-    username: v.string(),
+    player: v.id("player"),
     lobbyId: v.id("lobby"),
   },
 
@@ -50,15 +31,8 @@ export const addPlayer = mutation({
     const lobby = await ctx.db.get(args.lobbyId);
     if (!lobby) throw new Error("Lobby not found");
 
-    const player = {
-      name: args.username,
-      team: 0n,
-      task: 0n,
-      organizer: false, 
-    };
-
     await ctx.db.patch(args.lobbyId, {
-      players: [...(lobby.players ?? []), player],
+      players: [...(lobby.players ?? []), args.player],
     });
 
     return { lobbyId: args.lobbyId };
@@ -67,7 +41,7 @@ export const addPlayer = mutation({
 
 export const removePlayer = mutation({
   args: {
-    username: v.string(),
+    player: v.id("player"),
     lobbyId: v.id("lobby"),
   },
 
@@ -76,12 +50,31 @@ export const removePlayer = mutation({
     if (!lobby) throw new Error("Lobby not found");
 
     await ctx.db.patch(args.lobbyId, {
-      players: (lobby.players ?? []).filter((p) => p.name !== args.username),
+      players: (lobby.players ?? []).filter((p) => p !== args.player),
     });
 
     return { lobbyId: args.lobbyId };
   },
 });
+
+export const createPlayer = mutation({
+  args: {
+    username: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const player = {
+      name: args.username,
+      team: 0n,
+      task: 0n,
+      organizer: false,
+      currentLobby: null,
+    };
+    
+    const playerId = await ctx.db.insert("player", player);
+    return { playerId: playerId };
+  },
+})
 
 export const getLobbyById = query({
   args: {
@@ -89,26 +82,41 @@ export const getLobbyById = query({
   },
 
   handler: async (ctx, args) => {
-    const lobby = await ctx.db.get(args.lobbyId);
+    const lobbyId = args.lobbyId;
+    if (!lobbyId) throw new Error("Lobby not found");
 
-    return lobby;
+    const lobby = await ctx.db.get(lobbyId);
+
+    return { lobby: lobby};
   },
 });
 
-export const createGame = mutation({
+export const selectDeck = mutation({
   args: {
     deckId: v.id("deck"),
-    player: v.array(
-      v.object({
-        name: v.string(),
-        team: v.int64(),
-        task: v.int64(),
-      })
-    ),
+    lobbyId: v.id("lobby")
   },
 
   handler: async (ctx, args) => {
-    const deck = await ctx.db.get(args.deckId);
+
+    await ctx.db.patch(args.lobbyId, { currentDeck:  args.deckId});
+
+    return {succes: true}
+  }
+
+})
+
+export const createGame = mutation({
+  args: {
+      lobbyId: v.id("lobby")
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    if (!lobby.currentDeck) throw new Error("no deck found");
+    const deck = await ctx.db.get(lobby.currentDeck)
     if (!deck) throw new Error("Deck not found");
 
     if (deck.words.length < 25) {
@@ -121,13 +129,16 @@ export const createGame = mutation({
     const game = {
       active: true,
       turns: [],
-      players: args.player,
+      players: lobby.players,
       board,
     };
 
     const gameId = await ctx.db.insert("game", game);
 
-    return { gameId };
+    await ctx.db.patch(args.lobbyId, { currentGame:  gameId});
+
+
+    return { gameId: gameId };
   },
 });
 
