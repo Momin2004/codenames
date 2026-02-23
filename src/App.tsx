@@ -11,7 +11,10 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route path="" element={<HomeOverview />} />
         <Route path="dd" element={<GameOverview />} />
+<<<<<<< HEAD
         <Route path="lobby/:lobbyId" element={<LobbyOverview />} />
+=======
+>>>>>>> origin/main
       </Route>
     </Routes>
   );

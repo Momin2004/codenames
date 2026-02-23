@@ -26,13 +26,16 @@ export default defineSchema({
           team: v.int64(),
         })
       ),
-      players: v.array(
-        v.object({
-          name: v.string(),
-          team: v.int64(),
-          task: v.int64(),
-        })
-      ),
+      players: v.array(v.id("player")),
+    })
+  ),
+  player: defineTable(
+    v.object({
+      name: v.string(),
+      team: v.int64(),
+      task: v.int64(),
+      organizer: v.boolean(),
+      currentLobby: v.union(v.id("lobby"), v.null()),
     })
   ),
   deck: defineTable(
@@ -43,14 +46,7 @@ export default defineSchema({
   ),
   lobby: defineTable(
     v.object({
-      players: v.array(
-        v.object({
-          name: v.string(),
-          team: v.int64(),
-          task: v.int64(),
-          organizer: v.boolean(),
-        })
-      ),
+      players: v.array(v.id("player")),
       currentGame: v.union(v.id("game"), v.null()),
       currentDeck: v.union(v.id("deck"), v.null()),
     })
