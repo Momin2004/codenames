@@ -2,9 +2,10 @@ import { Box, Button, Card, CardContent, CircularProgress, Divider, Stack, Typog
 import { createSxStyles } from "@/utils/createSxStyles";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { Padding } from "@mui/icons-material";
+import { useState } from "react";
+import { JoinLobbyCard } from "../home/JoinLobbyCard";
 
 const useStyles = () =>
   createSxStyles({
@@ -70,7 +71,14 @@ const useStyles = () =>
 
 export const LobbyDisplay = () => {
   const styles = useStyles();
-  const { lobbyId } = useParams();
+  const { lobbyId: param } = useParams<{ lobbyId: string }>();
+  const lobbyId = param as Id<"lobby">
+  console.log(lobbyId)
+  const { state } = useLocation();
+  console.log(state)
+  const [playerId, setPlayerId] = useState<Id<"player"> | undefined>(() => {
+    return (state as { playerId?: Id<"player"> } | null)?.playerId;
+  });
 
   const renderShell = (content: React.ReactNode) => (
     <Box sx={styles.root}>
@@ -84,7 +92,7 @@ export const LobbyDisplay = () => {
   try {
     lobby = useQuery(
       api.GameFunctions.getLobbyById,
-      lobbyId ? { lobbyId: lobbyId as Id<"lobby"> } : "skip"
+      { lobbyId }
     );
   }
   catch {
@@ -105,7 +113,7 @@ export const LobbyDisplay = () => {
     )
   }
 
-  if (lobby === undefined || lobby === null) {
+  if (lobby?.lobby === undefined || lobby.lobby === null) {
     return renderShell(
       <Box sx={styles.statusBody}>
         <Stack spacing={2} alignItems="center">
@@ -115,6 +123,16 @@ export const LobbyDisplay = () => {
       </Box>
     );
   }
+
+  if (playerId === null || playerId === undefined) {
+
+    console.log('aaaa')
+    return <JoinLobbyCard lobbyId={lobbyId} setPlayerId={setPlayerId} />
+
+  }
+
+  console.log('bbb')
+
 
   const copyInviteLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -139,14 +157,15 @@ export const LobbyDisplay = () => {
 
       <Stack spacing={1.5} sx={styles.playersSection}>
         <Typography variant="h6" fontWeight={700}>
-          Players ({lobby.players.length})
+          Players ({lobby.lobby.players})
+          you: {playerId}
         </Typography>
 
-        {lobby.players.map((player, index) => (
-          <Box key={`${player.name}-${index}`} sx={styles.playerRow}>
+        {lobby.lobby.players.map((player, index) => (
+          <Box key={`${player}-${index}`} sx={styles.playerRow}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography>{player.name}</Typography>
-              {player.organizer && (
+              <Typography>{player}</Typography>
+              {player && (
                 <Typography variant="caption" color="primary.main" fontWeight={700}>
                   HOST
                 </Typography>
@@ -164,7 +183,7 @@ export const LobbyDisplay = () => {
         <Button variant="outlined" onClick={copyInviteLink}>
           Copy Invite Link
         </Button>
-        <Button variant="contained" disabled={lobby.players.length < 2}>
+        <Button variant="contained" disabled={lobby.lobby.players.length < 2}>
           Start Game
         </Button>
       </Box>

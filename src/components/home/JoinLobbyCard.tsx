@@ -5,7 +5,9 @@ import * as yup from "yup";
 import { createSxStyles } from "@/utils/createSxStyles";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { Id } from "../../../convex/_generated/dataModel";
+import React from "react";
 
 const schema = yup.object({
   username: yup
@@ -73,10 +75,15 @@ const useStyles = () =>
     },
   });
 
-export const CreateLobbyCard = () => {
+interface JoinLobbyCardProps {
+  setPlayerId: React.Dispatch<React.SetStateAction<Id<"player"> | undefined>>;
+  lobbyId: Id<"lobby">
+}
+
+export const JoinLobbyCard = ({ setPlayerId, lobbyId }: JoinLobbyCardProps) => {
   const styles = useStyles();
-  const navigate = useNavigate();
-  const createLobby = useMutation(api.GameFunctions.createLobby);
+  const createPlayer = useMutation(api.GameFunctions.createPlayer);
+  const joinLobby = useMutation(api.GameFunctions.joinLobby);
 
   return (
     <Box sx={styles.root}>
@@ -87,9 +94,10 @@ export const CreateLobbyCard = () => {
             validationSchema={schema}
             onSubmit={async (values) => {
               const username = values.username.trim();
-              const result = await createLobby({ username });
-              navigate(`/lobby/${result.lobbyid}`);
-              console.log('stiull there')
+              const { playerId } = await createPlayer({ username });
+              await joinLobby({ lobbyId, playerId })
+              setPlayerId(playerId)
+
             }}
           >
             {({

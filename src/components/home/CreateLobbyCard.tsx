@@ -6,6 +6,7 @@ import { createSxStyles } from "@/utils/createSxStyles";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api"
 import { useNavigate } from "react-router-dom";
+import { createPlayer } from "../../../convex/GameFunctions";
 
 const schema = yup.object({
   username: yup
@@ -77,6 +78,7 @@ export const CreateLobbyCard = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const createLobby = useMutation(api.GameFunctions.createLobby);
+  const createPlayer = useMutation(api.GameFunctions.createPlayer);
 
   return (
     <Box sx={styles.root}>
@@ -87,8 +89,9 @@ export const CreateLobbyCard = () => {
             validationSchema={schema}
             onSubmit={async (values) => {
               const username = values.username.trim();
-              const result = await createLobby({ username });
-              navigate(`/lobby/${result.lobbyid}`);
+              const { playerId } = await createPlayer({ username });
+              const result = await createLobby({ admin: playerId });
+              navigate(`/lobby/${result.lobbyid}`, { state: { playerId } });
               console.log('stiull there')
             }}
           >
@@ -138,6 +141,6 @@ export const CreateLobbyCard = () => {
           </Formik>
         </CardContent>
       </Card>
-    </Box>
+    </Box >
   );
 };
