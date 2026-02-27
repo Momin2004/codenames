@@ -21,6 +21,37 @@ export const createLobby = mutation({
   }
 })
 
+export const joinLobby = mutation({
+  args: {
+    lobbyId: v.id("lobby"),
+    playerId: v.id("player"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("User not found");
+
+    if (player.currentLobby && player.currentLobby !== args.lobbyId) {
+      throw new Error("User is already in another lobby");
+    }
+
+    const players = lobby.players ?? [];
+
+    if (!players.some((p) => p === args.playerId)) {
+      await ctx.db.patch(args.lobbyId, { players: [...players, args.playerId] });
+    }
+
+    if (player.currentLobby !== args.lobbyId) {
+      await ctx.db.patch(args.playerId, { currentLobby: args.lobbyId });
+    }
+
+    return { lobbyId: args.lobbyId, userId: args.playerId };
+  },
+});
+
 export const addPlayer = mutation({
   args: {
     player: v.id("player"),
