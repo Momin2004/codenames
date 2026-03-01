@@ -54,15 +54,17 @@ export const joinLobby = mutation({
 
 export const getPlayersByLobbyId = query({
   args: {
-    lobbyId: v.id("lobby"),
+    lobbyId: v.string(),
   },
 
   handler: async (ctx, args) => {
-    const lobby = await ctx.db.get(args.lobbyId);
-    if (!lobby) throw new Error("Lobby not found");
+    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
+    if (!normalized) return { players: [] };
+
+    const lobby = await ctx.db.get(normalized);
+    if (!lobby) return { players: [] };
 
     const playerIds = lobby.players ?? [];
-
     const players = (
       await Promise.all(playerIds.map((id) => ctx.db.get(id)))
     ).filter((p): p is NonNullable<typeof p> => p !== null);
