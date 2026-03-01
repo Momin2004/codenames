@@ -1,27 +1,19 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import type { Id } from "../../../../convex/_generated/dataModel";
-
-type LobbyResult = {
-  lobby: {
-    players: Id<"player">[];
-  };
-};
+import type { Doc, Id } from "../../../../convex/_generated/dataModel";
 
 export function WaitingState({
   lobbyId,
   playerId,
-  lobbyResult,
+  players,
   onCopyInvite,
   onStartGame,
 }: {
   lobbyId: Id<"lobby">;
   playerId: Id<"player">;
-  lobbyResult: LobbyResult;
+  players: Doc<"player">[];
   onCopyInvite: () => void;
   onStartGame: () => void;
 }) {
-  const players = lobbyResult.lobby.players ?? [];
-
   return (
     <Stack spacing={3}>
       <Box
@@ -46,12 +38,12 @@ export function WaitingState({
 
       <Stack spacing={1.5}>
         <Typography variant="h6" fontWeight={700}>
-          Players ({players.length}) — you: {playerId}
+          Players ({players.length})
         </Typography>
 
-        {players.map((p, index) => (
+        {players.map((p) => (
           <Box
-            key={`${p}-${index}`}
+            key={p._id}
             sx={{
               width: "100%",
               p: 1.5,
@@ -61,7 +53,18 @@ export function WaitingState({
               bgcolor: "rgba(255,255,255,0.02)",
             }}
           >
-            <Typography>{String(p)}</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography>
+                {p.name}
+                {p._id === playerId ? " (you)" : ""}
+              </Typography>
+
+              {p.organizer ? (
+                <Typography variant="caption" color="primary.main" fontWeight={700}>
+                  HOST
+                </Typography>
+              ) : null}
+            </Stack>
           </Box>
         ))}
       </Stack>

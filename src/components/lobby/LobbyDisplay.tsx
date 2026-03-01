@@ -1,11 +1,11 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { useState } from "react";
-import { useMutation } from "convex/react";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { CardShell } from "../layout/CardShell";
 
-import { useLobbyState } from "./useLobbyState";
+import { LobbyState, useLobbyState } from "./useLobbyState";
 import { LoadingState } from "./states/LoadingState";
 import { InvalidState } from "./states/InvalidState";
 import { JoinState } from "./states/JoinState";
@@ -22,7 +22,10 @@ export const LobbyDisplay = () => {
     return (state as { playerId?: Id<"player"> } | null)?.playerId;
   });
 
-  const { view, lobbyResult } = useLobbyState({ lobbyId, playerId });
+
+  const playersResult = useQuery(api.GameFunctions.getPlayersByLobbyId, { lobbyId });
+  const players: Doc<"player">[] = playersResult?.players ?? [];
+  const { state: view } = useLobbyState({ lobbyId, playerId });
 
   const startGame = useMutation(api.GameFunctions.createGame);
 
@@ -31,30 +34,30 @@ export const LobbyDisplay = () => {
   };
 
   const title =
-    view === "join" ? "Lumo Codenames" :
-      view === "game" ? "Game" :
+    view === LobbyState.Join ? "Lumo Codenames" :
+      view === LobbyState.Game ? "Game" :
         "Lobby";
 
   let body: React.ReactNode;
   switch (view) {
-    case "loading":
+    case LobbyState.Loading:
       body = <LoadingState />;
       break;
-    case "invalid":
+    case LobbyState.Invalid:
       body = <InvalidState onBack={() => navigate("/")} />;
       break;
-    case "join":
+    case LobbyState.Join:
       body = <JoinState lobbyId={lobbyId} setPlayerId={setPlayerId} />;
       break;
-    case "game":
+    case LobbyState.Game:
       body = <GameState />;
       break;
-    case "waiting":
+    case LobbyState.Waiting:
       body = (
         <WaitingState
           lobbyId={lobbyId}
           playerId={playerId!}
-          lobbyResult={lobbyResult!}
+          players={players}
           onCopyInvite={copyInviteLink}
           onStartGame={() => startGame({ lobbyId })}
         />
