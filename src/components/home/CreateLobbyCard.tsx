@@ -143,10 +143,7 @@ export const CreateLobbyCard = () => {
                     Create Lobby
                   </Button>
                 </Box>
-
               </Stack>
-
-
             </Stack>
           </form>
         )}
