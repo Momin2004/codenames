@@ -1,192 +1,146 @@
-import { Box, Button, Card, CardContent, CircularProgress, Divider, Stack, Typography } from "@mui/material";
-import { createSxStyles } from "@/utils/createSxStyles";
-import { useQuery } from "convex/react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { useState } from "react";
-import { JoinLobbyCard } from "../home/JoinLobbyCard";
+import { useMemo, useState } from "react";
+import { CardShell } from "../layout/CardShell";
+import { JoinLobbyForm } from "../home/JoinLobbyForm";
 
-const useStyles = () =>
-  createSxStyles({
-    root: {
-
-    },
-    card: {
-      width: "100%",
-      borderRadius: 3,
-      border: "1px solid",
-      borderColor: "primary.main",
-      bgcolor: "rgba(30, 30, 30, 0.88)",
-      backdropFilter: "blur(10px)",
-      backgroundImage:
-        "linear-gradient(180deg, rgba(68,161,148,0.08) 0%, rgba(83,125,150,0.04) 100%)",
-      boxShadow:
-        "0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(68,161,148,0.08)",
-    },
-    cardContent: {
-      p: { xs: 2.5, sm: 4 },
-    },
-    title: {
-      color: "primary.main",
-      letterSpacing: 0.4,
-      textAlign: "center",
-    },
-    statusBody: {
-      minHeight: '100%',
-      display: "grid",
-      placeItems: "center",
-      textAlign: "center",
-    },
-    codeBox: {
-      width: "100%",
-      p: 1.5,
-      borderRadius: 2,
-      border: "1px solid",
-      borderColor: "rgba(68,161,148,0.30)",
-      bgcolor: "rgba(255,255,255,0.02)",
-    },
-    playersSection: {
-      width: "100%",
-    },
-    playerRow: {
-      width: "100%",
-      p: 1.5,
-      borderRadius: 2,
-      border: "1px solid",
-      borderColor: "rgba(255,255,255,0.08)",
-      bgcolor: "rgba(255,255,255,0.02)",
-    },
-    actions: {
-      width: "100%",
-      display: "flex",
-      gap: 1,
-      justifyContent: "flex-end",
-      flexWrap: "wrap",
-    },
-    button: {
-      margin: 2
-    }
-  });
+type View = "invalid" | "loading" | "join" | "waiting" | "game";
 
 export const LobbyDisplay = () => {
-  const styles = useStyles();
+  const navigate = useNavigate();
   const { lobbyId: param } = useParams<{ lobbyId: string }>();
-  const lobbyId = param as Id<"lobby">
-  console.log(lobbyId)
+  const lobbyId = param as Id<"lobby">;
+
   const { state } = useLocation();
-  console.log(state)
   const [playerId, setPlayerId] = useState<Id<"player"> | undefined>(() => {
     return (state as { playerId?: Id<"player"> } | null)?.playerId;
   });
 
-  const renderShell = (content: React.ReactNode) => (
-    <Box sx={styles.root}>
-      <Card elevation={0} sx={styles.card}>
-        <CardContent sx={styles.cardContent}>{content}</CardContent>
-      </Card>
-    </Box>
-  );
 
-  var lobby;
+  var lobbyResult;
   try {
-    lobby = useQuery(
-      api.GameFunctions.getLobbyById,
-      { lobbyId }
-    );
+
+    lobbyResult = useQuery(api.GameFunctions.getLobbyById, { lobbyId });
   }
   catch {
-    return renderShell(
-      <Box sx={styles.statusBody}>
-        <Stack spacing={1} alignItems="center">
-          <Typography variant="h5" fontWeight={700} sx={styles.title}>
-
-          </Typography>
-          <Typography color="text.secondary" sx={{ paddingBottom: 2 }}>
-            This lobby may have been deleted or the link is invalid.
-          </Typography>
-          <Button variant={"outlined"} sx={styles.button}>
-            Back to main menu
-          </Button>
-        </Stack>
-      </Box>
-    )
+    lobbyResult = null;
   }
 
-  if (lobby?.lobby === undefined || lobby.lobby === null) {
-    return renderShell(
-      <Box sx={styles.statusBody}>
-        <Stack spacing={2} alignItems="center">
-          <CircularProgress size={28} />
-          <Typography variant="h6">Loading lobby...</Typography>
-        </Stack>
-      </Box>
-    );
-  }
-
-  if (playerId === null || playerId === undefined) {
-
-    console.log('aaaa')
-    return <JoinLobbyCard lobbyId={lobbyId} setPlayerId={setPlayerId} />
-
-  }
-
-  console.log('bbb')
-
+  const view: View = useMemo(() => {
+    if (lobbyResult === undefined) return "loading"; // query still loading
+    if (lobbyResult === null || lobbyResult?.lobby == null) return "invalid";
+    if (!playerId) return "join";
+    if (lobbyResult.lobby.currentGame) return "game";
+    return "waiting";
+  }, [lobbyResult, playerId]);
 
   const copyInviteLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
   };
 
-  return renderShell(
-    <Stack spacing={3}>
-      <Typography variant="h4" fontWeight={700} sx={styles.title}>
-        Lobby
-      </Typography>
+  const startGame = useMutation(api.GameFunctions.createGame);
 
-      <Box sx={styles.codeBox}>
-        <Typography variant="caption" color="text.secondary">
-          Lobby ID
-        </Typography>
-        <Typography variant="body1" sx={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-          {lobbyId}
-        </Typography>
-      </Box>
+  const title =
+    view === "join" ? "Lumo Codenames" :
+      view === "game" ? "Game" :
+        "Lobby";
 
-      <Divider />
-
-      <Stack spacing={1.5} sx={styles.playersSection}>
-        <Typography variant="h6" fontWeight={700}>
-          Players ({lobby.lobby.players})
-          you: {playerId}
-        </Typography>
-
-        {lobby.lobby.players.map((player, index) => (
-          <Box key={`${player}-${index}`} sx={styles.playerRow}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography>{player}</Typography>
-              {player && (
-                <Typography variant="caption" color="primary.main" fontWeight={700}>
-                  HOST
-                </Typography>
-              )}
-            </Stack>
-          </Box>
-        ))}
-      </Stack>
-
-      <Typography color="text.secondary">
-        Waiting for players to join...
-      </Typography>
-
-      <Box sx={styles.actions}>
+  const actions =
+    view === "invalid" ? (
+      <Button variant="outlined" onClick={() => navigate("/")}>Back to main menu</Button>
+    ) : view === "waiting" ? (
+      <>
         <Button variant="outlined" onClick={copyInviteLink}>
           Copy Invite Link
         </Button>
-        <Button variant="contained" disabled={lobby.lobby.players.length < 2}>
+        <Button
+          variant="contained"
+          disabled={(lobbyResult?.lobby?.players?.length ?? 0) < 2}
+          onClick={() => startGame({ lobbyId })}
+        >
           Start Game
         </Button>
-      </Box>
-    </Stack>
+      </>
+    ) : null;
+
+  const body =
+    view === "loading" ? (
+      <Stack spacing={2} alignItems="center">
+        <CircularProgress size={28} />
+        <Typography variant="h6">Loading lobby...</Typography>
+      </Stack>
+    ) : view === "invalid" ? (
+      <Stack spacing={1} alignItems="center">
+        <Typography color="text.secondary">
+          This lobby may have been deleted or the link is invalid.
+        </Typography>
+      </Stack>
+    ) : view === "join" ? (
+      <JoinLobbyForm lobbyId={lobbyId} setPlayerId={setPlayerId} />
+    ) : view === "game" ? (
+      <Typography>TODO: render your Game component here</Typography>
+    ) : (
+      // waiting
+      <Stack spacing={3}>
+        <Box
+          sx={{
+            width: "100%",
+            p: 1.5,
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: "rgba(68,161,148,0.30)",
+            bgcolor: "rgba(255,255,255,0.02)",
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            Lobby ID
+          </Typography>
+          <Typography variant="body1" sx={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+            {lobbyId}
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        <Stack spacing={1.5}>
+          <Typography variant="h6" fontWeight={700}>
+            Players ({lobbyResult?.lobby?.players?.length ?? 0}) — you: {playerId}
+          </Typography>
+
+          {(lobbyResult?.lobby?.players ?? []).map((p, index) => (
+            <Box
+              key={`${p}-${index}`}
+              sx={{
+                width: "100%",
+                p: 1.5,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "rgba(255,255,255,0.08)",
+                bgcolor: "rgba(255,255,255,0.02)",
+              }}
+            >
+              <Typography>{p}</Typography>
+            </Box>
+          ))}
+        </Stack>
+
+        <Typography color="text.secondary">Waiting for players to join...</Typography>
+      </Stack>
+    );
+
+  return (
+    <CardShell title={title} actions={actions}>
+      {body}
+    </CardShell>
   );
 };

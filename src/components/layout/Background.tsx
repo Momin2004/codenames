@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 export function Background({ children }: PropsWithChildren) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  // current + target position (in %)
   const current = useRef({ x: 50, y: 40 });
   const target = useRef({ x: 50, y: 40 });
 
@@ -22,7 +21,6 @@ export function Background({ children }: PropsWithChildren) {
     const c = current.current;
     const t = target.current;
 
-    // smooth follow (lower = slower)
     const ease = 0.08;
 
     c.x += (t.x - c.x) * ease;
@@ -47,19 +45,16 @@ export function Background({ children }: PropsWithChildren) {
   };
 
   useEffect(() => {
-    // init vars once
     writeVars();
     return () => {
       if (rafId.current != null) cancelAnimationFrame(rafId.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Box
       ref={rootRef}
       onPointerMove={(e) => {
-        // ignore touch drags
         if (e.pointerType === "touch") return;
 
         const el = rootRef.current;
@@ -77,7 +72,6 @@ export function Background({ children }: PropsWithChildren) {
         startLoop();
       }}
       onPointerLeave={() => {
-        // return to a nice default spot
         target.current = { x: 50, y: 40 };
         startLoop();
       }}
@@ -87,11 +81,9 @@ export function Background({ children }: PropsWithChildren) {
         width: "100%",
         overflow: "hidden",
 
-        // CSS vars for spotlight center
         "--mx": "50%",
         "--my": "40%",
 
-        // Spotlight overlay (follows cursor)
         "&::before": {
           content: '""',
           position: "fixed",
@@ -114,12 +106,10 @@ export function Background({ children }: PropsWithChildren) {
         },
 
         "@media (prefers-reduced-motion: reduce)": {
-          // keep it static for reduced motion
           "&::before": { opacity: 0.6 },
         },
       }}
     >
-      {/* Always-cover background (your original colors) */}
       <Box
         sx={{
           position: "fixed",
@@ -133,7 +123,6 @@ export function Background({ children }: PropsWithChildren) {
         }}
       />
 
-      {/* Grid overlay */}
       <Box
         sx={{
           position: "fixed",
@@ -149,7 +138,6 @@ export function Background({ children }: PropsWithChildren) {
         }}
       />
 
-      {/* Content */}
       <Box
         sx={{
           position: "relative",

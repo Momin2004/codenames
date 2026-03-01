@@ -6,6 +6,7 @@ import { createSxStyles } from "@/utils/createSxStyles";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
+import { CardShell } from "../layout/CardShell";
 
 const schema = yup.object({
   username: yup
@@ -90,68 +91,66 @@ export const CreateLobbyCard = () => {
   const createPlayer = useMutation(api.GameFunctions.createPlayer);
 
   return (
-    <Box sx={styles.root}>
-      <Box sx={styles.surface}>
-        <Formik
-          initialValues={{ username: "" }}
-          validationSchema={schema}
-          onSubmit={async (values) => {
-            const username = values.username.trim();
+    <CardShell title="Lumo Codenames">
+      <Formik
+        initialValues={{ username: "" }}
+        validationSchema={schema}
+        onSubmit={async (values) => {
+          const username = values.username.trim();
 
-            const { playerId } = await createPlayer({ username });
-            const result = await createLobby({ admin: playerId });
+          const { playerId } = await createPlayer({ username });
+          const result = await createLobby({ admin: playerId });
 
-            navigate(`/lobby/${result.lobbyid}`, { state: { playerId } });
-          }}
-        >
-          {({
-            values,
-            errors,
-            touched,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-            isValid,
-            dirty,
-          }) => (
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={3} alignItems="center">
-                <Typography variant="h4" fontWeight={700} sx={styles.title}>
-                  Lumo Codenames
-                </Typography>
+          navigate(`/lobby/${result.lobbyid}`, { state: { playerId } });
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isValid,
+          dirty,
+        }) => (
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={3} alignItems="center">
+              <Typography variant="h4" fontWeight={700} sx={styles.title}>
+                Lumo Codenames
+              </Typography>
 
-                <Stack spacing={1} sx={styles.inputSection}>
-                  <TextField
-                    fullWidth
-                    name="username"
-                    label="Enter your nickname"
-                    value={values.username}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={!!(touched.username && errors.username)}
-                    helperText={touched.username ? errors.username : " "}
-                  />
+              <Stack spacing={1} sx={styles.inputSection}>
+                <TextField
+                  fullWidth
+                  name="username"
+                  label="Enter your nickname"
+                  value={values.username}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!(touched.username && errors.username)}
+                  helperText={touched.username ? errors.username : " "}
+                />
 
-                  <Box sx={styles.actions}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      sx={styles.submitButton}
-                      disabled={!dirty || !isValid}
-                    >
-                      Create Lobby
-                    </Button>
-                  </Box>
-
-                </Stack>
-
+                <Box sx={styles.actions}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={styles.submitButton}
+                    disabled={!dirty || !isValid}
+                  >
+                    Create Lobby
+                  </Button>
+                </Box>
 
               </Stack>
-            </form>
-          )}
-        </Formik>
-      </Box>
-    </Box>
+
+
+            </Stack>
+          </form>
+        )}
+      </Formik>
+    </CardShell>
   );
 };
