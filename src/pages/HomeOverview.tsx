@@ -1,5 +1,5 @@
 import { CreateLobbyCard } from "@/components/home/CreateLobbyCard";
-import { Background } from "@/components/styled/Background";
+import { Background } from "@/components/layout/Background";
 
 export default function HomeOverview() {
   return (

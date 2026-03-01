@@ -1,6 +1,5 @@
 import { LobbyDisplay } from "@/components/lobby/LobbyDisplay";
-import { Background } from "@/components/styled/Background";
-import { Box } from "@mui/material";
+import { Background } from "@/components/layout/Background";
 
 export default function LobbyOverview() {
   return (
