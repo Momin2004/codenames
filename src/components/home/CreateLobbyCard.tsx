@@ -116,10 +116,6 @@ export const CreateLobbyCard = () => {
         }) => (
           <form onSubmit={handleSubmit}>
             <Stack spacing={3} alignItems="center">
-              <Typography variant="h4" fontWeight={700} sx={styles.title}>
-                Lumo Codenames
-              </Typography>
-
               <Stack spacing={1} sx={styles.inputSection}>
                 <TextField
                   fullWidth

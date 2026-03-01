@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { CardShell } from "../layout/CardShell";
@@ -22,10 +22,9 @@ export const LobbyDisplay = () => {
     return (state as { playerId?: Id<"player"> } | null)?.playerId;
   });
 
-
+  const { state: lobbyState } = useLobbyState({ lobbyId, playerId });
   const playersResult = useQuery(api.GameFunctions.getPlayersByLobbyId, { lobbyId });
   const players: Doc<"player">[] = playersResult?.players ?? [];
-  const { state: view } = useLobbyState({ lobbyId, playerId });
 
   const startGame = useMutation(api.GameFunctions.createGame);
 
@@ -33,13 +32,9 @@ export const LobbyDisplay = () => {
     await navigator.clipboard.writeText(window.location.href);
   };
 
-  const title =
-    view === LobbyState.Join ? "Lumo Codenames" :
-      view === LobbyState.Game ? "Game" :
-        "Lobby";
-
+  let title = "Lumo Codenames"
   let body: React.ReactNode;
-  switch (view) {
+  switch (lobbyState) {
     case LobbyState.Loading:
       body = <LoadingState />;
       break;
@@ -50,9 +45,11 @@ export const LobbyDisplay = () => {
       body = <JoinState lobbyId={lobbyId} setPlayerId={setPlayerId} />;
       break;
     case LobbyState.Game:
+      title = "Game"
       body = <GameState />;
       break;
     case LobbyState.Waiting:
+      title = "Lobby"
       body = (
         <WaitingState
           lobbyId={lobbyId}

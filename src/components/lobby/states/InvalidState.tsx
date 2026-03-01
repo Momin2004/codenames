@@ -1,3 +1,4 @@
+import { CardShell } from "@/components/layout/CardShell";
 import { Button, Stack, Typography } from "@mui/material";
 
 export function InvalidState({ onBack }: { onBack: () => void }) {
