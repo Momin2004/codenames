@@ -7,6 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 import type { Doc, Id } from "../../../../convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 type Team = 0 | 1 | 2;
 type Role = 0 | 1 | 2;
@@ -32,7 +34,6 @@ function roleLabel(r: Role) {
 }
 
 function teamColor(t: Team) {
-  // keep it simple; you can style later
   return t === 1 ? "info" : t === 2 ? "error" : "default";
 }
 
@@ -44,6 +45,8 @@ function SlotCard({
   meId,
   playersInSlot,
   isSingleSlot,
+  playerId,
+  lobbyId,
   onJoin,
   onLeave,
 }: {
@@ -54,7 +57,9 @@ function SlotCard({
   meId: Id<"player">;
   playersInSlot: Doc<"player">[];
   isSingleSlot: boolean;
-  onJoin: (team: Team, role: Role) => void;
+  playerId: Id<"player">;
+  lobbyId: Id<"lobby">
+  onJoin: (playerId: Id<"player">, team: Team, role: Role, lobbyId: Id<"lobby">) => void;
   onLeave: () => void;
 }) {
   const occupiedByOther =
@@ -129,7 +134,7 @@ function SlotCard({
             <Button
               variant="contained"
               disabled={occupiedByOther}
-              onClick={() => onJoin(team, role)}
+              onClick={() => onJoin(playerId, team, role, lobbyId)}
             >
               {occupiedByOther ? "Taken" : "Join"}
             </Button>
@@ -166,6 +171,7 @@ export function WaitingState({
   const redOperatives = players.filter((p) => toTeam(p) === 2 && toRole(p) === 1);
 
   const unassigned = players.filter((p) => toTeam(p) === 0 || toRole(p) === 0);
+  const changePlayerRole = useMutation(api.GameFunctions.changePlayerRole);
 
   return (
     <Stack spacing={3}>
@@ -212,8 +218,11 @@ export function WaitingState({
           meId={playerId}
           playersInSlot={blueSpymaster}
           isSingleSlot
-          onJoin={onPickSlot}
+          onJoin={(playerId, team, role, lobbyId) =>
+            changePlayerRole({ playerId, lobbyId, team: BigInt(team), task: BigInt(role) })}
           onLeave={onClearSlot}
+          lobbyId={lobbyId}
+          playerId={playerId}
         />
 
         <SlotCard
@@ -224,8 +233,11 @@ export function WaitingState({
           meId={playerId}
           playersInSlot={redSpymaster}
           isSingleSlot
-          onJoin={onPickSlot}
+          onJoin={(playerId, team, role, lobbyId) =>
+            changePlayerRole({ playerId, lobbyId, team: BigInt(team), task: BigInt(role) })}
           onLeave={onClearSlot}
+          lobbyId={lobbyId}
+          playerId={playerId}
         />
 
         <SlotCard
@@ -236,8 +248,11 @@ export function WaitingState({
           meId={playerId}
           playersInSlot={blueOperatives}
           isSingleSlot={false}
-          onJoin={onPickSlot}
+          onJoin={(playerId, team, role, lobbyId) =>
+            changePlayerRole({ playerId, lobbyId, team: BigInt(team), task: BigInt(role) })}
           onLeave={onClearSlot}
+          lobbyId={lobbyId}
+          playerId={playerId}
         />
 
         <SlotCard
@@ -248,8 +263,11 @@ export function WaitingState({
           meId={playerId}
           playersInSlot={redOperatives}
           isSingleSlot={false}
-          onJoin={onPickSlot}
+          onJoin={(playerId, team, role, lobbyId) =>
+            changePlayerRole({ playerId, lobbyId, team: BigInt(team), task: BigInt(role) })}
           onLeave={onClearSlot}
+          lobbyId={lobbyId}
+          playerId={playerId}
         />
       </Box>
 
