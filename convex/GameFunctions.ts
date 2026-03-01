@@ -128,16 +128,15 @@ export const createPlayer = mutation({
 
 export const getLobbyById = query({
   args: {
-    lobbyId: v.id("lobby"),
+    lobbyId: v.string(),
   },
 
   handler: async (ctx, args) => {
-    const lobbyId = args.lobbyId;
-    if (!lobbyId) throw new Error("Lobby not found");
+    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
+    if (!normalized) return { lobby: null };
 
-    const lobby = await ctx.db.get(lobbyId);
-
-    return { lobby: lobby };
+    const lobby = await ctx.db.get(normalized);
+    return { lobby };
   },
 });
 
