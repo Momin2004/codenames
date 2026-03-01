@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Layout from "./utils/Layout";
 import HomeOverview from "./pages/HomeOverview";
 import GameOverview from "./pages/GameOverview";
+import LobbyOverview from "./pages/LobbyOverview";
 
 
 export default function App() {
@@ -9,7 +10,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route path="" element={<HomeOverview />} />
-        <Route path="dd" element={<GameOverview />} />
+        <Route path="fd" element={<GameOverview />} />
+        <Route path="lobby/:lobbyId" element={<LobbyOverview />} />
       </Route>
     </Routes>
   );

@@ -1,11 +1,10 @@
 import { BoardDisplay } from "@/components/board/BoardDisplay";
-
+import { Background } from "@/components/layout/Background";
 
 export default function GameOverview() {
   return (
-    <div>
-      <h1>Game</h1>
+    <Background>
       <BoardDisplay />
-    </div >
-  );
+    </Background>
+  )
 }

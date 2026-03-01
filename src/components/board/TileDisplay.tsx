@@ -9,7 +9,7 @@ interface TileDisplayProps {
 const useStyles = (tile: Tile) =>
   createSxStyles({
     root: {
-      width: 128,
+      width: 160,
       height: 128,
       perspective: "1000px",
 
@@ -20,8 +20,7 @@ const useStyles = (tile: Tile) =>
       height: "100%",
       transform: tile.flipped ? "rotateY(180deg)" : "rotateY(0deg)",
       transition: "transform 0.6s",
-      transformStyle: "preserve-3d",
-
+      transformStyle: "preserve-3d"
     },
     face: {
       position: "absolute",
