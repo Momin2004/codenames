@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as DeckFunctions from "../DeckFunctions.js";
 import type * as GameFunctions from "../GameFunctions.js";
+import type * as LobbyFunctions from "../LobbyFunctions.js";
 
 import type {
   ApiFromModules,
@@ -17,7 +19,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  DeckFunctions: typeof DeckFunctions;
   GameFunctions: typeof GameFunctions;
+  LobbyFunctions: typeof LobbyFunctions;
 }>;
 
 /**

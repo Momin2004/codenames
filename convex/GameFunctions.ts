@@ -2,217 +2,9 @@ import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 
-export const createLobby = mutation({
-  args: {
-    admin: v.id("player"),
-  },
-
-  handler: async (ctx, args) => {
-    const lobby = {
-      players: [args.admin],
-      currentGame: null,
-      currentDeck: null,
-    }
-    const lobbyid = await ctx.db.insert("lobby", lobby);
-
-    await ctx.db.patch(args.admin, { organizer: true, currentLobby: lobbyid });
-
-    return { lobbyid: lobbyid }
-  }
-})
-
-export const joinLobby = mutation({
-  args: {
-    lobbyId: v.id("lobby"),
-    playerId: v.id("player"),
-  },
-
-  handler: async (ctx, args) => {
-    const lobby = await ctx.db.get(args.lobbyId);
-    if (!lobby) throw new Error("Lobby not found");
-
-    const player = await ctx.db.get(args.playerId);
-    if (!player) throw new Error("User not found");
-
-    if (player.currentLobby && player.currentLobby !== args.lobbyId) {
-      throw new Error("User is already in another lobby");
-    }
-
-    const players = lobby.players ?? [];
-
-    if (!players.some((p) => p === args.playerId)) {
-      await ctx.db.patch(args.lobbyId, { players: [...players, args.playerId] });
-    }
-
-    if (player.currentLobby !== args.lobbyId) {
-      await ctx.db.patch(args.playerId, { currentLobby: args.lobbyId });
-    }
-
-    return { lobbyId: args.lobbyId, userId: args.playerId };
-  },
-});
-
-export const getPlayersByLobbyId = query({
-  args: {
-    lobbyId: v.string(),
-  },
-
-  handler: async (ctx, args) => {
-    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
-    if (!normalized) return { players: [] };
-
-    const lobby = await ctx.db.get(normalized);
-    if (!lobby) return { players: [] };
-
-    const playerIds = lobby.players ?? [];
-    const players = (
-      await Promise.all(playerIds.map((id) => ctx.db.get(id)))
-    ).filter((p): p is NonNullable<typeof p> => p !== null);
-
-    return { players };
-  },
-});
-
-export const changePlayerRole = mutation({
-  args: {
-    lobbyId: v.id("lobby"),
-    playerId: v.id("player"),
-    team: v.int64(),
-    task: v.int64(),
-  },
-
-  handler: async (ctx, args) => {
-    const allowed = new Set<bigint>([0n, 1n, 2n]);
-
-    if (!allowed.has(args.team)) throw new Error("Invalid team");
-    if (!allowed.has(args.task)) throw new Error("Invalid task");
-
-    const lobby = await ctx.db.get(args.lobbyId);
-    if (!lobby) throw new Error("Lobby not found");
-
-    const player = await ctx.db.get(args.playerId);
-    if (!player) throw new Error("Player not found");
-
-    if (player.currentLobby !== args.lobbyId) {
-      throw new Error("Player is not in this lobby");
-    }
-
-    const isSpymaster = args.task === 2n;
-    const isTeamChosen = args.team === 1n || args.team === 2n;
-
-    if (isSpymaster && isTeamChosen) {
-      const playerDocs = (
-        await Promise.all((lobby.players ?? []).map((id) => ctx.db.get(id)))
-      ).filter((p): p is NonNullable<typeof p> => p !== null);
-
-      const spymasterTaken = playerDocs.some(
-        (p) =>
-          p._id !== args.playerId &&
-          p.team === args.team &&
-          p.task === 2n
-      );
-
-      if (spymasterTaken) {
-        throw new Error("That team's spymaster slot is already taken");
-      }
-    }
-
-    await ctx.db.patch(args.playerId, {
-      team: args.team,
-      task: args.task,
-    });
-
-    return { success: true };
-  },
-});
-
-export const addPlayer = mutation({
-  args: {
-    player: v.id("player"),
-    lobbyId: v.id("lobby"),
-  },
-
-  handler: async (ctx, args) => {
-    const lobby = await ctx.db.get(args.lobbyId);
-    if (!lobby) throw new Error("Lobby not found");
-
-    await ctx.db.patch(args.lobbyId, {
-      players: [...(lobby.players ?? []), args.player],
-    });
-
-    return { lobbyId: args.lobbyId };
-  },
-});
-
-export const removePlayer = mutation({
-  args: {
-    player: v.id("player"),
-    lobbyId: v.id("lobby"),
-  },
-
-  handler: async (ctx, args) => {
-    const lobby = await ctx.db.get(args.lobbyId);
-    if (!lobby) throw new Error("Lobby not found");
-
-    await ctx.db.patch(args.lobbyId, {
-      players: (lobby.players ?? []).filter((p) => p !== args.player),
-    });
-
-    return { lobbyId: args.lobbyId };
-  },
-});
-
-export const createPlayer = mutation({
-  args: {
-    username: v.string(),
-  },
-
-  handler: async (ctx, args) => {
-    const player = {
-      name: args.username,
-      team: 0n,
-      task: 0n,
-      organizer: false,
-      currentLobby: null,
-    };
-
-    const playerId = await ctx.db.insert("player", player);
-    return { playerId: playerId };
-  },
-})
-
-export const getLobbyById = query({
-  args: {
-    lobbyId: v.string(),
-  },
-
-  handler: async (ctx, args) => {
-    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
-    if (!normalized) return { lobby: null };
-
-    const lobby = await ctx.db.get(normalized);
-    return { lobby };
-  },
-});
-
-export const selectDeck = mutation({
-  args: {
-    deckId: v.id("deck"),
-    lobbyId: v.id("lobby")
-  },
-
-  handler: async (ctx, args) => {
-
-    await ctx.db.patch(args.lobbyId, { currentDeck: args.deckId });
-
-    return { succes: true }
-  }
-
-})
-
 export const createGame = mutation({
   args: {
-    lobbyId: v.id("lobby")
+    lobbyId: v.id("lobby"),
   },
 
   handler: async (ctx, args) => {
@@ -220,7 +12,7 @@ export const createGame = mutation({
     if (!lobby) throw new Error("Lobby not found");
 
     if (!lobby.currentDeck) throw new Error("no deck found");
-    const deck = await ctx.db.get(lobby.currentDeck)
+    const deck = await ctx.db.get(lobby.currentDeck);
     if (!deck) throw new Error("Deck not found");
 
     if (deck.words.length < 25) {
@@ -241,8 +33,131 @@ export const createGame = mutation({
 
     await ctx.db.patch(args.lobbyId, { currentGame: gameId });
 
-
     return { gameId: gameId };
+  },
+});
+
+export const startTurn = mutation({
+  args: {
+    gameId: v.id("game"),
+    team: v.int64(),
+  },
+
+  handler: async (ctx, args) => {
+    if (args.team !== 1n && args.team !== 2n) {
+      throw new Error("Invalid team");
+    }
+
+    const game = await ctx.db.get(args.gameId);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+
+    const turn = {
+      index: BigInt(game.turns.length),
+      team: args.team,
+      guesses: [],
+    };
+
+    await ctx.db.patch(args.gameId, { turns: [...game.turns, turn] });
+    return { success: true, turnIndex: turn.index };
+  },
+});
+
+export const setTurnHint = mutation({
+  args: {
+    gameId: v.id("game"),
+    turnIndex: v.int64(),
+    word: v.string(),
+    amount: v.int64(),
+  },
+
+  handler: async (ctx, args) => {
+    const game = await ctx.db.get(args.gameId);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+
+    const turnPos = Number(args.turnIndex);
+    if (turnPos < 0 || turnPos >= game.turns.length) {
+      throw new Error("Turn not found");
+    }
+
+    const updatedTurns = [...game.turns];
+    updatedTurns[turnPos] = {
+      ...updatedTurns[turnPos],
+      hint: { word: args.word, amount: args.amount },
+    };
+
+    await ctx.db.patch(args.gameId, { turns: updatedTurns });
+    return { success: true };
+  },
+});
+
+export const makeMove = mutation({
+  args: {
+    gameId: v.id("game"),
+    playerId: v.id("player"),
+    tileIndex: v.int64(),
+  },
+
+  handler: async (ctx, args) => {
+    const game = await ctx.db.get(args.gameId);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+
+    if (!game.players.some((id) => id === args.playerId)) {
+      throw new Error("Player is not part of this game");
+    }
+
+    const tilePos = Number(args.tileIndex);
+    if (tilePos < 0 || tilePos >= game.board.length) {
+      throw new Error("Tile index out of range");
+    }
+
+    const targetTile = game.board[tilePos];
+    if (targetTile.isGuessed) {
+      throw new Error("Tile already guessed");
+    }
+
+    const updatedBoard = [...game.board];
+    updatedBoard[tilePos] = { ...targetTile, isGuessed: true };
+
+    const updatedTurns = [...game.turns];
+    let turnPos = updatedTurns.length - 1;
+
+    if (turnPos < 0) {
+      if (player.team !== 1n && player.team !== 2n) {
+        throw new Error("Player team must be red or blue");
+      }
+      updatedTurns.push({
+        index: 0n,
+        team: player.team,
+        guesses: [],
+      });
+      turnPos = 0;
+    }
+
+    const activeTurn = updatedTurns[turnPos];
+    if (player.team !== activeTurn.team) {
+      throw new Error("Player is not on the active turn team");
+    }
+
+    updatedTurns[turnPos] = {
+      ...activeTurn,
+      guesses: [
+        ...activeTurn.guesses,
+        { tileIndex: args.tileIndex, playerId: args.playerId },
+      ],
+    };
+
+    await ctx.db.patch(args.gameId, {
+      board: updatedBoard,
+      turns: updatedTurns,
+    });
+
+    return { success: true };
   },
 });
 
@@ -265,7 +180,7 @@ function createCodenamesBoard(words: string[]) {
     ...Array(9).fill(1), // red
     ...Array(8).fill(2), // blue
     ...Array(7).fill(0), // neutral
-    3,                   // black
+    3, // black
   ];
 
   const shuffledTypes = shuffle(types);
@@ -275,6 +190,6 @@ function createCodenamesBoard(words: string[]) {
     word,
     type: BigInt(shuffledTypes[index]),
     isGuessed: false,
-  }))
+  }));
 }
 

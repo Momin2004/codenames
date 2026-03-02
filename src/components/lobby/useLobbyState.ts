@@ -17,7 +17,7 @@ type UseLobbyStateArgs = {
 };
 
 export function useLobbyState({ lobbyId, playerId }: UseLobbyStateArgs) {
-  const lobbyResult = useQuery(api.GameFunctions.getLobbyById, { lobbyId });
+  const lobbyResult = useQuery(api.LobbyFunctions.getLobbyById, { lobbyId });
 
   const state: LobbyState = useMemo(() => {
     if (lobbyResult === undefined) return LobbyState.Loading;

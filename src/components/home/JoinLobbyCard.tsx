@@ -23,8 +23,8 @@ interface JoinLobbyCardProps {
 }
 
 export const JoinLobbyCard = ({ setPlayerId, lobbyId }: JoinLobbyCardProps) => {
-  const createPlayer = useMutation(api.GameFunctions.createPlayer);
-  const joinLobby = useMutation(api.GameFunctions.joinLobby);
+  const createPlayer = useMutation(api.LobbyFunctions.createPlayer);
+  const joinLobby = useMutation(api.LobbyFunctions.joinLobby);
 
   return (
     <CardShell title="Lumo Codenames">

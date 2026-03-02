@@ -87,8 +87,8 @@ export const CreateLobbyCard = () => {
   const styles = useStyles();
   const navigate = useNavigate();
 
-  const createLobby = useMutation(api.GameFunctions.createLobby);
-  const createPlayer = useMutation(api.GameFunctions.createPlayer);
+  const createLobby = useMutation(api.LobbyFunctions.createLobby);
+  const createPlayer = useMutation(api.LobbyFunctions.createPlayer);
 
   return (
     <CardShell title="Lumo Codenames">

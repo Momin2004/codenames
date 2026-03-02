@@ -1,0 +1,216 @@
+import { v } from "convex/values";
+import { query, mutation, action } from "./_generated/server";
+import { api } from "./_generated/api";
+
+export const createLobby = mutation({
+  args: {
+    admin: v.id("player"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = {
+      players: [args.admin],
+      currentGame: null,
+      currentDeck: null,
+    };
+    const lobbyid = await ctx.db.insert("lobby", lobby);
+
+    await ctx.db.patch(args.admin, { organizer: true, currentLobby: lobbyid });
+
+    return { lobbyid: lobbyid };
+  },
+});
+
+export const joinLobby = mutation({
+  args: {
+    lobbyId: v.id("lobby"),
+    playerId: v.id("player"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("User not found");
+
+    if (player.currentLobby && player.currentLobby !== args.lobbyId) {
+      throw new Error("User is already in another lobby");
+    }
+
+    const players = lobby.players ?? [];
+
+    if (!players.some((p) => p === args.playerId)) {
+      await ctx.db.patch(args.lobbyId, { players: [...players, args.playerId] });
+    }
+
+    if (player.currentLobby !== args.lobbyId) {
+      await ctx.db.patch(args.playerId, { currentLobby: args.lobbyId });
+    }
+
+    return { lobbyId: args.lobbyId, userId: args.playerId };
+  },
+});
+
+export const getPlayersByLobbyId = query({
+  args: {
+    lobbyId: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
+    if (!normalized) return { players: [] };
+
+    const lobby = await ctx.db.get(normalized);
+    if (!lobby) return { players: [] };
+
+    const playerIds = lobby.players ?? [];
+    const players = (
+      await Promise.all(playerIds.map((id) => ctx.db.get(id)))
+    ).filter((p): p is NonNullable<typeof p> => p !== null);
+
+    return { players };
+  },
+});
+
+export const changePlayerRole = mutation({
+  args: {
+    lobbyId: v.id("lobby"),
+    playerId: v.id("player"),
+    team: v.int64(),
+    task: v.int64(),
+  },
+
+  handler: async (ctx, args) => {
+    const allowed = new Set<bigint>([0n, 1n, 2n]);
+
+    if (!allowed.has(args.team)) throw new Error("Invalid team");
+    if (!allowed.has(args.task)) throw new Error("Invalid task");
+
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+
+    if (player.currentLobby !== args.lobbyId) {
+      throw new Error("Player is not in this lobby");
+    }
+
+    const isSpymaster = args.task === 2n;
+    const isTeamChosen = args.team === 1n || args.team === 2n;
+
+    if (isSpymaster && isTeamChosen) {
+      const playerDocs = (
+        await Promise.all((lobby.players ?? []).map((id) => ctx.db.get(id)))
+      ).filter((p): p is NonNullable<typeof p> => p !== null);
+
+      const spymasterTaken = playerDocs.some(
+        (p) =>
+          p._id !== args.playerId &&
+          p.team === args.team &&
+          p.task === 2n
+      );
+
+      if (spymasterTaken) {
+        throw new Error("That team's spymaster slot is already taken");
+      }
+    }
+
+    await ctx.db.patch(args.playerId, {
+      team: args.team,
+      task: args.task,
+    });
+
+    return { success: true };
+  },
+});
+
+export const addPlayer = mutation({
+  args: {
+    player: v.id("player"),
+    lobbyId: v.id("lobby"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    await ctx.db.patch(args.lobbyId, {
+      players: [...(lobby.players ?? []), args.player],
+    });
+
+    return { lobbyId: args.lobbyId };
+  },
+});
+
+export const removePlayer = mutation({
+  args: {
+    player: v.id("player"),
+    lobbyId: v.id("lobby"),
+  },
+
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db.get(args.lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    await ctx.db.patch(args.lobbyId, {
+      players: (lobby.players ?? []).filter((p) => p !== args.player),
+    });
+
+    return { lobbyId: args.lobbyId };
+  },
+});
+
+export const createPlayer = mutation({
+  args: {
+    username: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const player = {
+      name: args.username,
+      team: 0n,
+      task: 0n,
+      organizer: false,
+      currentLobby: null,
+    };
+
+    const playerId = await ctx.db.insert("player", player);
+    return { playerId: playerId };
+  },
+});
+
+export const getLobbyById = query({
+  args: {
+    lobbyId: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const normalized = ctx.db.normalizeId("lobby", args.lobbyId);
+    if (!normalized) return { lobby: null };
+
+    const lobby = await ctx.db.get(normalized);
+    return { lobby };
+  },
+});
+
+export const listLobbys = query({
+  handler: async (ctx) => {
+    const rawLobbys = await ctx.db.query("lobby").collect();
+    const lobbys = await Promise.all(
+      rawLobbys.map(async (lobby) => {
+        const players = (
+          await Promise.all((lobby.players ?? []).map((id) => ctx.db.get(id)))
+        ).filter((p): p is NonNullable<typeof p> => p !== null);
+
+        return {
+          ...lobby,
+          players,
+        };
+      })
+    );
+
+    return { lobbys };
+  },
+});

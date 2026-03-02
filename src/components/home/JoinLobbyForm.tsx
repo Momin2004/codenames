@@ -22,8 +22,8 @@ interface JoinLobbyFormProps {
 }
 
 export const JoinLobbyForm = ({ setPlayerId, lobbyId }: JoinLobbyFormProps) => {
-  const createPlayer = useMutation(api.GameFunctions.createPlayer);
-  const joinLobby = useMutation(api.GameFunctions.joinLobby);
+  const createPlayer = useMutation(api.LobbyFunctions.createPlayer);
+  const joinLobby = useMutation(api.LobbyFunctions.joinLobby);
 
   return (
     <Formik

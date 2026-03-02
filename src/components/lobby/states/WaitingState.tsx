@@ -171,7 +171,7 @@ export function WaitingState({
   const redOperatives = players.filter((p) => toTeam(p) === 2 && toRole(p) === 1);
 
   const unassigned = players.filter((p) => toTeam(p) === 0 || toRole(p) === 0);
-  const changePlayerRole = useMutation(api.GameFunctions.changePlayerRole);
+  const changePlayerRole = useMutation(api.LobbyFunctions.changePlayerRole);
 
   return (
     <Stack spacing={3}>

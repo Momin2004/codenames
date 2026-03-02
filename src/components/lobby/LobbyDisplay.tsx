@@ -23,7 +23,7 @@ export const LobbyDisplay = () => {
   });
 
   const { state: lobbyState } = useLobbyState({ lobbyId, playerId });
-  const playersResult = useQuery(api.GameFunctions.getPlayersByLobbyId, { lobbyId });
+  const playersResult = useQuery(api.LobbyFunctions.getPlayersByLobbyId, { lobbyId });
   const players: Doc<"player">[] = playersResult?.players ?? [];
 
   const startGame = useMutation(api.GameFunctions.createGame);
