@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { DeckTemplate } from "./DeckTemplate";
 import { Id } from "./_generated/dataModel";
 
@@ -176,6 +176,28 @@ export const makeMove = mutation({
   },
 });
 
+export const getBoard = query({
+  args: {
+    gameId: v.id("game"),
+  },
+  handler: async (ctx, args) => {
+    const game = await ctx.db.get(args.gameId);
+    if (!game) throw new Error("Game not found");
+    return game.board;
+  },
+});
+
+export const getBoardWords = query({
+  args: {
+    gameId: v.id("game"),
+  },
+  handler: async (ctx, args) => {
+    const game = await ctx.db.get(args.gameId);
+    if (!game) throw new Error("Game not found");
+    return game.board.map((t) => t.word);
+  },
+});
+
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -207,4 +229,3 @@ function createCodenamesBoard(words: string[]) {
     isGuessed: false,
   }));
 }
-

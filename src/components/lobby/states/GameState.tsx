@@ -1,5 +1,7 @@
+import { BoardDisplay } from "@/components/board/BoardDisplay";
 import { Typography } from "@mui/material";
 
 export function GameState() {
-  return <Typography>TODO: render your Game component here</Typography>;
+  return <BoardDisplay />
+
 }
