@@ -23,8 +23,9 @@ export const LobbyDisplay = () => {
     return (state as { playerId?: Id<"player"> } | null)?.playerId;
   });
 
-  const { state: lobbyState } = useLobbyState({ lobbyId, playerId });
   const playersResult = useQuery(api.LobbyFunctions.getPlayersByLobbyId, { lobbyId });
+  const lobby = useQuery(api.LobbyFunctions.getLobbyById, { lobbyId })
+  const { state: lobbyState } = useLobbyState({ lobby: lobby?.lobby, playerId });
   const players: Doc<"player">[] = playersResult?.players ?? [];
 
   const startGame = useMutation(api.GameFunctions.createGame);
@@ -36,6 +37,7 @@ export const LobbyDisplay = () => {
 
   let title = "Lumo Codenames"
   let body: React.ReactNode;
+  console.log("lobby: " + lobby?.lobby?.currentGame)
   switch (lobbyState) {
     case LobbyState.Loading:
       body = <LoadingState />;
@@ -48,7 +50,7 @@ export const LobbyDisplay = () => {
       break;
     case LobbyState.Game:
       title = "Game"
-      body = <GameState />;
+      body = <GameState gameId={lobby?.lobby?.currentGame} />;
       break;
     case LobbyState.Waiting:
       title = "Lobby"
@@ -64,5 +66,5 @@ export const LobbyDisplay = () => {
       break;
   }
 
-  return <CardShell title={title}>{body}</CardShell>;
+  return <CardShell title={title} width="fit-content">{body}</CardShell>;
 };
