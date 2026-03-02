@@ -9,6 +9,7 @@
  */
 
 import type * as DeckFunctions from "../DeckFunctions.js";
+import type * as DeckTemplate from "../DeckTemplate.js";
 import type * as GameFunctions from "../GameFunctions.js";
 import type * as LobbyFunctions from "../LobbyFunctions.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   DeckFunctions: typeof DeckFunctions;
+  DeckTemplate: typeof DeckTemplate;
   GameFunctions: typeof GameFunctions;
   LobbyFunctions: typeof LobbyFunctions;
 }>;

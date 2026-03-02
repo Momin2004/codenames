@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation } from "./_generated/server";
+import { DeckTemplate } from "./DeckTemplate";
+import { Id } from "./_generated/dataModel";
 
 export const createGame = mutation({
   args: {
@@ -11,8 +12,24 @@ export const createGame = mutation({
     const lobby = await ctx.db.get(args.lobbyId);
     if (!lobby) throw new Error("Lobby not found");
 
-    if (!lobby.currentDeck) throw new Error("no deck found");
-    const deck = await ctx.db.get(lobby.currentDeck);
+    let deckId: Id<"deck"> | null = (lobby.currentDeck as Id<"deck"> | null) ?? null;
+
+    if (!deckId) {
+      const firstDecks = await ctx.db.query("deck").take(1);
+      if (firstDecks.length > 0) {
+        deckId = firstDecks[0]._id;
+      } else {
+        if (DeckTemplate.words.length < 25) {
+          throw new Error("Default deckTemplate must contain at least 25 words");
+        }
+
+        deckId = await ctx.db.insert("deck", DeckTemplate);
+      }
+
+      await ctx.db.patch(args.lobbyId, { currentDeck: deckId });
+    }
+
+    const deck = await ctx.db.get(deckId);
     if (!deck) throw new Error("Deck not found");
 
     if (deck.words.length < 25) {
@@ -22,18 +39,16 @@ export const createGame = mutation({
     const selectedWords = pickRandomWords(deck.words, 25);
     const board = createCodenamesBoard(selectedWords);
 
-    const game = {
+    const gameId = await ctx.db.insert("game", {
       active: true,
       turns: [],
       players: lobby.players,
       board,
-    };
-
-    const gameId = await ctx.db.insert("game", game);
+    });
 
     await ctx.db.patch(args.lobbyId, { currentGame: gameId });
 
-    return { gameId: gameId };
+    return { gameId };
   },
 });
 

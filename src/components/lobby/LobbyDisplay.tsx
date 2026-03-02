@@ -11,6 +11,7 @@ import { InvalidState } from "./states/InvalidState";
 import { JoinState } from "./states/JoinState";
 import { WaitingState } from "./states/WaitingState";
 import { GameState } from "./states/GameState";
+import { deckTemplate } from "@/types/deckTemplate";
 
 export const LobbyDisplay = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export const LobbyDisplay = () => {
   const players: Doc<"player">[] = playersResult?.players ?? [];
 
   const startGame = useMutation(api.GameFunctions.createGame);
+  const createDeck = useMutation(api.DeckFunctions.createDeck)
 
   const copyInviteLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
