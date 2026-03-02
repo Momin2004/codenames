@@ -187,14 +187,20 @@ export const getBoard = query({
   },
 });
 
-export const getBoardWords = query({
+export const getPublicBoard = query({
   args: {
     gameId: v.id("game"),
   },
   handler: async (ctx, args) => {
     const game = await ctx.db.get(args.gameId);
     if (!game) throw new Error("Game not found");
-    return game.board.map((t) => t.word);
+
+    return game.board.map((t) => ({
+      position: t.position,
+      word: t.word,
+      isGuessed: t.isGuessed,
+      type: t.isGuessed ? t.type : null,
+    }));
   },
 });
 
