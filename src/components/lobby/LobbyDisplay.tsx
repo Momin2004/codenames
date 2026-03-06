@@ -49,7 +49,7 @@ export const LobbyDisplay = () => {
       body = <JoinState lobbyId={lobbyId} setPlayerId={setPlayerId} />;
       break;
     case LobbyState.Game:
-      title = "Game"
+      title = ""
       body = (
         <GameState
           gameId={lobby?.lobby?.currentGame}
@@ -72,6 +72,5 @@ export const LobbyDisplay = () => {
       break;
   }
 
-  return <CardShell title={title} width="fit-content">{body}</CardShell>;
-  // return body
+  return body
 };

@@ -6,6 +6,7 @@ import type { Id, Doc } from "../../../../convex/_generated/dataModel";
 import { useEffect } from "react";
 import { toTileFromPublic } from "@/types/board"; // the mapper we made earlier
 import { tileTemplate } from "@/utils/tileTemplate";
+import { CardShell } from "@/components/layout/CardShell";
 
 type GameStateProps = {
   gameId: Id<"game"> | null | undefined;
@@ -32,9 +33,13 @@ export function GameState
   if (!gameId) return null;
 
   if (board === undefined) {
-    return <Typography>Loading board…</Typography>;
+    return <CardShell><Typography> Loading board…</ Typography></CardShell>
   }
 
   const tiles = board.map(toTileFromPublic);
-  return <BoardDisplay tiles={tiles ?? tileTemplate} />;
+  return (
+    <CardShell width="fit-content">
+      <BoardDisplay tiles={tiles ?? tileTemplate} />
+    </CardShell>
+  )
 }

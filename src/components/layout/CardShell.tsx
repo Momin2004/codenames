@@ -5,7 +5,7 @@ import { createSxStyles } from "@/utils/createSxStyles";
 const useStyles = () =>
   createSxStyles({
     root: {
-      width: "min(750px, 100%)",
+      width: "min(560px, 100%)",
       mx: "auto",
     },
 

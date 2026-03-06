@@ -20,7 +20,7 @@ const schema = yup.object({
 const useStyles = () =>
   createSxStyles({
     root: {
-
+      width: 560
     },
 
     surface: {
@@ -45,7 +45,7 @@ const useStyles = () =>
 
     inputSection: {
       width: "100%",
-      maxWidth: 420,
+      // maxWidth: 560,
 
       "& .MuiInputLabel-root": {
         color: "text.secondary",

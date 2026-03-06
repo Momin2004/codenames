@@ -1,6 +1,7 @@
 import type { Id } from "../../../../convex/_generated/dataModel";
 import React from "react";
 import { JoinLobbyForm } from "../../home/JoinLobbyForm";
+import { CardShell } from "@/components/layout/CardShell";
 
 export function JoinState({
   lobbyId,
@@ -9,5 +10,9 @@ export function JoinState({
   lobbyId: Id<"lobby">;
   setPlayerId: React.Dispatch<React.SetStateAction<Id<"player"> | undefined>>;
 }) {
-  return <JoinLobbyForm lobbyId={lobbyId} setPlayerId={setPlayerId} />;
+  return (
+    <CardShell title="Lumo Codenames">
+      <JoinLobbyForm lobbyId={lobbyId} setPlayerId={setPlayerId} />
+    </CardShell>
+  )
 }
