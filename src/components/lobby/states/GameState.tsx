@@ -2,19 +2,25 @@ import { BoardDisplay } from "@/components/board/BoardDisplay";
 import { Typography } from "@mui/material";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import type { Id } from "../../../../convex/_generated/dataModel";
-import { useEffect, useMemo } from "react";
+import type { Id, Doc } from "../../../../convex/_generated/dataModel";
+import { useEffect } from "react";
 import { toTileFromPublic } from "@/types/board"; // the mapper we made earlier
 import { tileTemplate } from "@/utils/tileTemplate";
 
 type GameStateProps = {
   gameId: Id<"game"> | null | undefined;
+  playerId: Id<"player">;
+  players: Doc<"player">[];
 };
 
-export function GameState({ gameId }: GameStateProps) {
-  // Always call useQuery; skip when no gameId
+export function GameState
+  ({
+    gameId,
+    playerId,
+    players
+  }: GameStateProps) {
   const board = useQuery(
-    api.GameFunctions.getPublicBoard, // use public board
+    api.GameFunctions.getPublicBoard,
     gameId ? { gameId } : "skip"
   );
 
@@ -29,6 +35,6 @@ export function GameState({ gameId }: GameStateProps) {
     return <Typography>Loading board…</Typography>;
   }
 
-  const tiles = board.map(toTileFromPublic); // converts bigint|null type -> TileType
+  const tiles = board.map(toTileFromPublic);
   return <BoardDisplay tiles={tiles ?? tileTemplate} />;
 }

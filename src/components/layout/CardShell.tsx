@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { createSxStyles } from "@/utils/createSxStyles";
 
@@ -12,14 +12,17 @@ const useStyles = () =>
     card: {
       width: "100%",
       borderRadius: 3,
+      position: "relative",
+      overflow: "hidden",
+
+      bgcolor: "rgba(255,255,255,0.06)",
       border: "1px solid",
-      borderColor: "primary.main",
-      bgcolor: "rgba(30, 30, 30, 0.88)",
-      backdropFilter: "blur(10px)",
-      backgroundImage:
-        "linear-gradient(180deg, rgba(68,161,148,0.08) 0%, rgba(83,125,150,0.04) 100%)",
-      boxShadow:
-        "0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(68,161,148,0.08)",
+      borderColor: "rgba(255,255,255,0.14)",
+
+      boxShadow: "none",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+      backgroundImage: "none",
     },
 
     cardContent: {
@@ -27,8 +30,8 @@ const useStyles = () =>
     },
 
     title: {
-      color: "primary.main",
-      letterSpacing: 0.4,
+      color: "rgba(255,255,255,0.92)",
+      letterSpacing: 0.3,
       textAlign: "center",
     },
 
@@ -53,13 +56,10 @@ type FooterAlign = "left" | "center" | "right";
 export type CardShellProps = {
   title?: ReactNode;
   children: ReactNode;
-
   centerContent?: boolean;
   minHeight?: number;
-
   actions?: ReactNode;
   actionsAlign?: FooterAlign;
-
   width?: string;
 };
 
@@ -83,8 +83,8 @@ export function CardShell({
 
   return (
     <Box sx={{ ...styles.root, ...(width ? { width } : null) }}>
-      <Card elevation={0} sx={styles.card}>
-        <CardContent sx={styles.cardContent}>
+      <Box sx={styles.card}>
+        <Box sx={styles.cardContent}>
           <Stack spacing={3} alignItems="center">
             {title ? (
               typeof title === "string" ? (
@@ -111,8 +111,8 @@ export function CardShell({
               <Box sx={{ ...styles.actions, justifyContent: justify }}>{actions}</Box>
             ) : null}
           </Stack>
-        </CardContent>
-      </Card>
+        </Box>
+      </Box>
     </Box>
   );
 }

@@ -76,8 +76,8 @@ export function Background({ children }: PropsWithChildren) {
         startLoop();
       }}
       sx={{
-        position: "relative",
-        height: "100dvh",
+        position: "fixed",
+        inset: 0,
         width: "100%",
         overflow: "hidden",
 
@@ -92,15 +92,15 @@ export function Background({ children }: PropsWithChildren) {
           pointerEvents: "none",
           mixBlendMode: "screen",
           background: `
-            radial-gradient(520px 520px at var(--mx) var(--my),
-              rgba(68, 161, 148, 0.18),
-              transparent 60%
-            ),
-            radial-gradient(700px 700px at calc(var(--mx) + 14%) calc(var(--my) - 6%),
-              rgba(83, 125, 150, 0.14),
-              transparent 65%
-            )
-          `,
+        radial-gradient(520px 520px at var(--mx) var(--my),
+          rgba(68, 161, 148, 0.18),
+          transparent 60%
+        ),
+        radial-gradient(700px 700px at calc(var(--mx) + 14%) calc(var(--my) - 6%),
+          rgba(83, 125, 150, 0.14),
+          transparent 65%
+        )
+      `,
           filter: "blur(10px)",
           opacity: 0.9,
         },
@@ -150,7 +150,7 @@ export function Background({ children }: PropsWithChildren) {
           boxSizing: "border-box",
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: 560 }}>{children}</Box>
+        <Box sx={{ width: "100%" }}>{children}</Box>
       </Box>
     </Box>
   );

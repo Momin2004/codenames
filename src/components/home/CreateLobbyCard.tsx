@@ -20,11 +20,11 @@ const schema = yup.object({
 const useStyles = () =>
   createSxStyles({
     root: {
-      width: "min(750px, 100%)",
+
     },
 
     surface: {
-      width: "100%",
+
       borderRadius: 3,
       border: "1px solid",
       borderColor: "primary.main",
@@ -75,7 +75,6 @@ const useStyles = () =>
     },
 
     actions: {
-      width: "100%",
       display: "flex",
       justifyContent: "center",
       flexWrap: "wrap",
@@ -118,7 +117,6 @@ export const CreateLobbyCard = () => {
             <Stack spacing={3} alignItems="center">
               <Stack spacing={1} sx={styles.inputSection}>
                 <TextField
-                  fullWidth
                   name="username"
                   label="Enter your nickname"
                   value={values.username}

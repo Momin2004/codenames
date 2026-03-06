@@ -50,7 +50,13 @@ export const LobbyDisplay = () => {
       break;
     case LobbyState.Game:
       title = "Game"
-      body = <GameState gameId={lobby?.lobby?.currentGame} />;
+      body = (
+        <GameState
+          gameId={lobby?.lobby?.currentGame}
+          playerId={playerId!}
+          players={players}
+        />
+      );
       break;
     case LobbyState.Waiting:
       title = "Lobby"
@@ -67,4 +73,5 @@ export const LobbyDisplay = () => {
   }
 
   return <CardShell title={title} width="fit-content">{body}</CardShell>;
+  // return body
 };

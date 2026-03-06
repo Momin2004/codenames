@@ -7,10 +7,8 @@ interface TileDisplayProps {
 }
 
 function getTileBg(tile: Tile) {
-  // Not guessed => always neutral (public board shouldn't leak)
   if (!tile.isGuessed) return "rgba(255,255,255,0.08)";
 
-  // Guessed => reveal actual type color
   switch (tile.type) {
     case TileType.Red:
       return "rgba(244, 67, 54, 0.55)";
@@ -53,7 +51,6 @@ const useStyles = (tile: Tile) => {
       position: "relative",
       width: "100%",
       height: "100%",
-      // keep your flip if you like it; remove these 2 lines to disable flipping entirely
       transform: tile.isGuessed ? "rotateY(180deg)" : "rotateY(0deg)",
       transition: "transform 0.6s",
       transformStyle: "preserve-3d",
