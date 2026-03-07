@@ -9,7 +9,7 @@ export function CardsLeftDisplay({
   count: number | string;
 }) {
   const color =
-    team === "blue" ? "rgba(33, 150, 243, 0.92)" : "rgba(244, 67, 54, 0.92)";
+    team === "blue" ? "rgba(121, 134, 203, 0.92)" : "rgba(244, 143, 177, 0.92)";
 
   return (
     <Box
@@ -29,7 +29,7 @@ export function CardsLeftDisplay({
       </Typography>
 
       <Typography variant="h3" fontWeight={800} sx={{ color }}>
-        {count}
+        {7}
       </Typography>
     </Box>
   );

@@ -26,38 +26,29 @@ export const LobbyDisplay = () => {
   const players: Doc<"player">[] = playersResult?.players ?? [];
 
   const startGame = useMutation(api.GameFunctions.createGame);
-  const createDeck = useMutation(api.DeckFunctions.createDeck)
 
   const copyInviteLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
   };
 
-  let title = "Lumo Codenames"
-  let body: React.ReactNode;
   console.log("lobby: " + lobby?.lobby?.currentGame)
   switch (lobbyState) {
     case LobbyState.Loading:
-      body = <LoadingState />;
-      break;
+      return <LoadingState />;
     case LobbyState.Invalid:
-      body = <InvalidState onBack={() => navigate("/")} />;
-      break;
+      return <InvalidState onBack={() => navigate("/")} />;
     case LobbyState.Join:
-      body = <JoinState lobbyId={lobbyId} setPlayerId={setPlayerId} />;
-      break;
+      return <JoinState lobbyId={lobbyId} setPlayerId={setPlayerId} />;
     case LobbyState.Game:
-      title = ""
-      body = (
+      return (
         <GameState
           gameId={lobby?.lobby?.currentGame}
           playerId={playerId!}
           players={players}
         />
       );
-      break;
     case LobbyState.Waiting:
-      title = "Lobby"
-      body = (
+      return (
         <WaitingState
           lobbyId={lobbyId}
           playerId={playerId!}
@@ -66,8 +57,5 @@ export const LobbyDisplay = () => {
           onStartGame={() => startGame({ lobbyId })}
         />
       );
-      break;
   }
-
-  return body
 };

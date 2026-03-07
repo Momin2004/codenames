@@ -1,5 +1,5 @@
 import { BoardDisplay } from "@/components/board/BoardDisplay";
-import { Box, Container, Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id, Doc } from "../../../../convex/_generated/dataModel";
@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { toTileFromPublic } from "@/types/board";
 import { tileTemplate } from "@/utils/tileTemplate";
 import { CardShell } from "@/components/layout/CardShell";
-import { CardColor } from "@/types/CardColor";
 import { TeamPanel } from "@/components/board/TeamPanel";
+import { HintPanel } from "@/components/board/HintPanel";
 
 type GameStateProps = {
   gameId: Id<"game"> | null | undefined;
@@ -77,9 +77,23 @@ export function GameState({
         />
       </Box>
 
-      <CardShell width="fit-content">
+      <Box>
+        <Typography
+          variant="h5"
+          sx={{
+            textAlign: "center",
+            color: "rgba(255,255,255,0.92)",
+            fontWeight: 700,
+            mb: 2,
+            letterSpacing: 0.4,
+            fontSize: 35
+          }}
+        >
+          Give your operatives a clue
+        </Typography>
         <BoardDisplay tiles={tiles ?? tileTemplate} />
-      </CardShell>
+        <HintPanel />
+      </Box>
 
       <Box sx={{ justifySelf: "start" }}>
         <TeamPanel
