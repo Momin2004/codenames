@@ -295,6 +295,18 @@ export const makeMove = mutation({
       winnerTeam,
     });
 
+    if (hitBlack || !guessedOwnColor || reachedGuessLimit) {
+      const turn: Turn = {
+        team: switchTeam(flow.activeTeam),
+        guesses: [],
+        status: TurnStatus.Clue,
+      };
+
+      await ctx.db.patch(lobby.currentGame, {
+        turns: [...game.turns, turn],
+      });
+    }
+
     return { success: true };
   },
 });
