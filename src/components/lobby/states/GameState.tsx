@@ -21,8 +21,7 @@ export function GameState({
   players,
 }: GameStateProps) {
   const board = useQuery(
-    api.GameFunctions.getPublicBoard,
-    gameId ? { gameId } : "skip"
+    api.GameFunctions.getBoard, { playerId }
   );
 
   useEffect(() => {

@@ -12,11 +12,17 @@ export type GameDisplayProps = {
   playerId: Id<"player">;
   players: Doc<"player">[];
   board: {
-    position: bigint;
-    word: string;
-    isGuessed: boolean;
-    type: bigint | null;
-  }[]
+    board: {
+      position: bigint;
+      word: string;
+      isGuessed: boolean;
+      type: 0n | 1n | 2n | 3n | null;
+    }[];
+    cardLeft: {
+      red: number;
+      blue: number;
+    };
+  }
 };
 
 export type Team = "blue" | "red";
@@ -39,7 +45,7 @@ export const GameDisplay = ({
   board
 }: GameDisplayProps) => {
   const TEAM_ID: Record<Team, bigint> = { red: 1n, blue: 2n };
-  const tiles = board.map(toTileFromPublic);
+  const tiles = board.board.map(toTileFromPublic);
 
   const TASK_ID: Record<Role, bigint> = { operative: 1n, spymaster: 2n };
 

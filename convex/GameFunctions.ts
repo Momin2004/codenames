@@ -390,9 +390,6 @@ export const getBoard = query({
         red: countRemaining(game.board, Team.Red),
         blue: countRemaining(game.board, Team.Blue),
       },
-      revealAll,
-      gameActive: game.active,
-      winnerTeam: game.winnerTeam,
     };
   },
 });
