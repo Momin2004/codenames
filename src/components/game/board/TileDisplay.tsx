@@ -4,42 +4,34 @@ import { Box, Card, Typography } from "@mui/material";
 
 interface TileDisplayProps {
   tile: Tile;
+  team: TileType;
 }
 
 export function getTileBg(tile: Tile) {
-  if (!tile.isGuessed) return "rgba(255,255,255,0.08)";
 
   switch (tile.type) {
     case TileType.Red:
-      return "rgba(244, 67, 54, 0.20)";
+      return "rgba(244, 143, 177, 0.1)";
     case TileType.Blue:
-      return "rgba(33, 149, 243, 0.20)";
+      return "rgba(121, 134, 203, 0.1)";
     case TileType.Black:
-      return "rgba(0,0,0,0.50)";
+      return "rgba(0,0,0,0.5)";
     case TileType.Neutral:
+      return "rgba(255,255,255,0.10)"
     default:
-      return "rgba(255,255,255,0.20)";
+      return "rgba(15, 34, 39, 0.1)";
   }
 }
 
-function getTileBorder(tile: Tile) {
-  if (!tile.isGuessed) return "rgba(255,255,255,0.18)";
-
-  switch (tile.type) {
-    case TileType.Red:
-      return "rgba(244, 67, 54, 0.85)";
-    case TileType.Blue:
-      return "rgba(33, 150, 243, 0.85)";
-    case TileType.Black:
-      return "rgba(0,0,0,0.9)";
-    default:
-      return "rgba(255,255,255,0.35)";
-  }
+function getTileBorder(tile: Tile, team: TileType) {
+  if (tile.type === TileType.Red && team === TileType.Red) return "rgba(244, 143, 177, 1)";
+  if (tile.type === TileType.Blue && team === TileType.Blue) return "rgba(121, 134, 203, 1)";
+  return "rgba(0, 0, 0, 0)"
 }
 
-const useStyles = (tile: Tile) => {
+const useStyles = (tile: Tile, team: TileType) => {
   const bg = getTileBg(tile);
-  const border = getTileBorder(tile);
+  const border = getTileBorder(tile, team);
 
   return createSxStyles({
     root: {
@@ -86,8 +78,8 @@ const useStyles = (tile: Tile) => {
   });
 };
 
-export const TileDisplay = ({ tile }: TileDisplayProps) => {
-  const styles = useStyles(tile);
+export const TileDisplay = ({ tile, team }: TileDisplayProps) => {
+  const styles = useStyles(tile, team);
 
   return (
     <Box sx={styles.root}>

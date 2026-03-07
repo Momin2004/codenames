@@ -1,10 +1,11 @@
 import { Box } from "@mui/material";
 import { TileDisplay } from "./TileDisplay";
-import { Tile } from "@/types/board";
+import { Tile, TileType } from "@/types/board";
 import { createSxStyles } from "@/utils/createSxStyles";
 
 interface BoardDisplayProps {
   tiles: Tile[];
+  team: TileType;
 }
 
 const useStyles = (columns: number) =>
@@ -17,7 +18,7 @@ const useStyles = (columns: number) =>
     },
   });
 
-export const BoardDisplay = ({ tiles }: BoardDisplayProps) => {
+export const BoardDisplay = ({ tiles, team }: BoardDisplayProps) => {
   const tileCount = tiles.length;
   const columns = Math.ceil(Math.sqrt(tileCount));
   const styles = useStyles(columns);
@@ -25,7 +26,7 @@ export const BoardDisplay = ({ tiles }: BoardDisplayProps) => {
   return (
     <Box sx={styles.grid}>
       {tiles.map((tile) => (
-        <TileDisplay key={tile.position.toString()} tile={tile} />
+        <TileDisplay key={tile.position.toString()} tile={tile} team={team} />
       ))}
     </Box>
   );

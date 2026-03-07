@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id, Doc } from "../../../../convex/_generated/dataModel";
 import { useEffect } from "react";
@@ -23,6 +23,8 @@ export function GameState({
   const board = useQuery(
     api.GameFunctions.getBoard, { playerId }
   );
+  const gameState = useQuery(api.GameFunctions.getPlayerGameState, { playerId });
+  const endGuessing = useMutation(api.GameFunctions.endGuessing);
 
   useEffect(() => {
     console.log("gameId", gameId);
@@ -31,7 +33,7 @@ export function GameState({
 
   if (!gameId) return null;
 
-  if (board === undefined) {
+  if (board === undefined || gameState === undefined) {
     return (
       <CardShell>
         <Typography>Loading board…</Typography>
@@ -39,5 +41,14 @@ export function GameState({
     );
   }
 
-  return <GameDisplay gameId={gameId} playerId={playerId} players={players} board={board} />
+  return (
+    <GameDisplay
+      gameId={gameId}
+      playerId={playerId}
+      players={players}
+      board={board}
+      gameState={gameState}
+      onEndGuessing={() => endGuessing({ playerId })
+      } />
+  )
 }

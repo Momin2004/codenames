@@ -29,7 +29,7 @@ export function CardsLeftDisplay({
       </Typography>
 
       <Typography variant="h3" fontWeight={800} sx={{ color }}>
-        {7}
+        {count}
       </Typography>
     </Box>
   );
