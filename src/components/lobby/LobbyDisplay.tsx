@@ -3,15 +3,12 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { CardShell } from "../layout/CardShell";
-
 import { LobbyState, useLobbyState } from "./useLobbyState";
 import { LoadingState } from "./states/LoadingState";
 import { InvalidState } from "./states/InvalidState";
 import { JoinState } from "./states/JoinState";
 import { WaitingState } from "./states/WaitingState";
 import { GameState } from "./states/GameState";
-import { deckTemplate } from "@/types/deckTemplate";
 
 export const LobbyDisplay = () => {
   const navigate = useNavigate();
