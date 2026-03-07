@@ -52,79 +52,93 @@ export const createGame = mutation({
   },
 });
 
-export const startTurn = mutation({
+export const startNewTurn = mutation({
   args: {
-    gameId: v.id("game"),
-    team: v.int64(),
+    playerId: v.id("player")
   },
 
   handler: async (ctx, args) => {
-    if (args.team !== 1n && args.team !== 2n) {
-      throw new Error("Invalid team");
-    }
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if (!player.currentLobby) throw new Error("lobby not found");
+    if (player.task !== 2n) throw new Error("player needs to be spion") 
 
-    const game = await ctx.db.get(args.gameId);
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if  (!lobby.currentGame) throw new Error("game not found");
+    
+    const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
     if (!game.active) throw new Error("Game is not active");
 
+    const currentTurn = (game.turns.length % 2) + 1
+
     const turn = {
-      index: BigInt(game.turns.length),
-      team: args.team,
+      team: BigInt(currentTurn),
       guesses: [],
     };
 
-    await ctx.db.patch(args.gameId, { turns: [...game.turns, turn] });
-    return { success: true, turnIndex: turn.index };
+    await ctx.db.patch(lobby.currentGame, { turns: [...game.turns, turn] });
+    return { success: true };
   },
 });
 
 export const setTurnHint = mutation({
   args: {
-    gameId: v.id("game"),
-    turnIndex: v.int64(),
+    playerId: v.id("player"),
     word: v.string(),
     amount: v.int64(),
   },
 
   handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId);
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if (!player.currentLobby) throw new Error("lobby not found");
+    if (player.task !== 2n) throw new Error("player needs to be spion") 
+
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if  (!lobby.currentGame) throw new Error("game not found");
+    
+    const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
     if (!game.active) throw new Error("Game is not active");
-
-    const turnPos = Number(args.turnIndex);
-    if (turnPos < 0 || turnPos >= game.turns.length) {
-      throw new Error("Turn not found");
+    if (player.team !== game.turns[game.turns.length - 1].team) {
+      throw new Error("Player is not on the active turn team");
     }
 
     const updatedTurns = [...game.turns];
-    updatedTurns[turnPos] = {
-      ...updatedTurns[turnPos],
+    const lastTurnIndex = updatedTurns.length - 1;
+    updatedTurns[lastTurnIndex] = {
+      ...updatedTurns[lastTurnIndex],
       hint: { word: args.word, amount: args.amount },
     };
 
-    await ctx.db.patch(args.gameId, { turns: updatedTurns });
+    await ctx.db.patch(lobby.currentGame, { turns: updatedTurns });
     return { success: true };
   },
 });
 
 export const makeMove = mutation({
   args: {
-    gameId: v.id("game"),
     playerId: v.id("player"),
     tileIndex: v.int64(),
   },
 
   handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId);
-    if (!game) throw new Error("Game not found");
-    if (!game.active) throw new Error("Game is not active");
 
     const player = await ctx.db.get(args.playerId);
     if (!player) throw new Error("Player not found");
+    if (!player.currentLobby) throw new Error("lobby not found");
+    if (player.task !== 1n) throw new Error("player needs to be spion") 
 
-    if (!game.players.some((id) => id === args.playerId)) {
-      throw new Error("Player is not part of this game");
-    }
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if  (!lobby.currentGame) throw new Error("game not found");
+    
+    const game = await ctx.db.get(lobby.currentGame);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
 
     const tilePos = Number(args.tileIndex);
     if (tilePos < 0 || tilePos >= game.board.length) {
@@ -142,17 +156,7 @@ export const makeMove = mutation({
     const updatedTurns = [...game.turns];
     let turnPos = updatedTurns.length - 1;
 
-    if (turnPos < 0) {
-      if (player.team !== 1n && player.team !== 2n) {
-        throw new Error("Player team must be red or blue");
-      }
-      updatedTurns.push({
-        index: 0n,
-        team: player.team,
-        guesses: [],
-      });
-      turnPos = 0;
-    }
+    if (turnPos < 0) throw new Error("no active turn")
 
     const activeTurn = updatedTurns[turnPos];
     if (player.team !== activeTurn.team) {
@@ -167,7 +171,7 @@ export const makeMove = mutation({
       ],
     };
 
-    await ctx.db.patch(args.gameId, {
+    await ctx.db.patch(lobby.currentGame, {
       board: updatedBoard,
       turns: updatedTurns,
     });
@@ -178,12 +182,35 @@ export const makeMove = mutation({
 
 export const getBoard = query({
   args: {
-    gameId: v.id("game"),
+    playerId: v.id("player"),
   },
   handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId);
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if  (!player.currentLobby) throw new Error("lobby not found");
+
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if  (!lobby.currentGame) throw new Error("game not found");
+    
+    const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
-    return game.board;
+    if (!game.active) throw new Error("Game is not active");
+
+    if (player.task === 2n) {
+      const redLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 1n);
+
+      const blueLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 2n);
+
+      return {board: game.board, cardLeft: [blueLeft.length, redLeft.length]};
+    } else {
+      return game.board.map((t) => ({
+        position: t.position,
+        word: t.word,
+        isGuessed: t.isGuessed,
+        type: t.isGuessed ? t.type : null,
+      }));
+    }
   },
 });
 
@@ -194,6 +221,7 @@ export const getPublicBoard = query({
   handler: async (ctx, args) => {
     const game = await ctx.db.get(args.gameId);
     if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
 
     return game.board.map((t) => ({
       position: t.position,
@@ -222,7 +250,7 @@ function createCodenamesBoard(words: string[]) {
   const types = [
     ...Array(9).fill(1), // red
     ...Array(8).fill(2), // blue
-    ...Array(7).fill(0), // neutral
+    ...Array(6).fill(0), // neutral
     3, // black
   ];
 

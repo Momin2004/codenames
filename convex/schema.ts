@@ -16,7 +16,6 @@ export default defineSchema({
       ),
       turns: v.array(
         v.object({
-          index: v.int64(),
           hint: v.optional(
             v.object({ amount: v.int64(), word: v.string() })
           ),
