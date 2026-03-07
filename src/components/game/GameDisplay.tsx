@@ -5,7 +5,9 @@ import { HintPanel } from "./panels/HintPanel";
 import { tileTemplate } from "@/utils/tileTemplate";
 import { formatGuessAmount, formatGuessesRemaining, GameDisplayProps, getStatusSubtext, getStatusText, getWinnerText, Role, TASK_ID, Team, TEAM_ID } from "./GameHelper";
 import { GamePhase } from "../../../convex/DataTypes";
-import { TileType } from "@/types/board";
+import { Tile, TileType } from "@/types/board";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export const GameDisplay = ({
   gameId,
@@ -28,6 +30,31 @@ export const GameDisplay = ({
   const statusText = getStatusText(gameState);
   const statusSubtext = getStatusSubtext(gameState);
   const guessesRemaining = formatGuessesRemaining(gameState.guessesRemaining);
+
+  const makeMove = useMutation(api.GameFunctions.makeMove);
+  const endGuessing = useMutation(api.GameFunctions.endGuessing);
+
+  const myTeamTileType =
+    gameState.myTeam === 1n
+      ? TileType.Red
+      : gameState.myTeam === 2n
+        ? TileType.Blue
+        : TileType.Neutral;
+
+  const handleTileClick = async (tile: Tile) => {
+    if (!gameState.canGuess || tile.isGuessed) return;
+
+    await makeMove({
+      playerId,
+      tileIndex: tile.position,
+    });
+  };
+
+  const handleEndGuessing = async () => {
+    if (!gameState.canEndGuessing) return;
+
+    await endGuessing({ playerId });
+  };
 
   return (
     <Box
@@ -90,7 +117,18 @@ export const GameDisplay = ({
             </Stack>
           )}
 
-          <BoardDisplay tiles={tiles ?? tileTemplate} team={players.find(x => x._id === playerId)?.team ?? TileType.Black} />
+          <BoardDisplay
+            tiles={tiles ?? tileTemplate}
+            team={myTeamTileType}
+            canClickTiles={gameState.canGuess}
+            onTileClick={handleTileClick}
+          />
+
+          {gameState.canEndGuessing && (
+            <Button variant="contained" onClick={handleEndGuessing}>
+              End guessing
+            </Button>
+          )}
 
           {gameState.canGiveClue && <HintPanel playerId={playerId} />}
 
