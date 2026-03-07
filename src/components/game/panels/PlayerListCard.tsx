@@ -1,6 +1,6 @@
 import { Stack, Typography } from "@mui/material";
-import { CardShell } from "../layout/CardShell";
-import { Doc } from "../../../convex/_generated/dataModel";
+import { CardShell } from "../../layout/CardShell";
+import { Doc } from "../../../../convex/_generated/dataModel";
 import { CardColor } from "@/types/CardColor";
 
 export function PlayerListCard({

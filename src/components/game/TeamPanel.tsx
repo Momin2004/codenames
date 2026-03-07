@@ -1,6 +1,6 @@
 import { Stack } from "@mui/material";
-import { PlayerListCard } from "./PlayerListCard";
-import { CardsLeftDisplay } from "./CardsLeftDisplay";
+import { PlayerListCard } from "./panels/PlayerListCard";
+import { CardsLeftDisplay } from "./panels/CardsLeftDisplay";
 import { Doc } from "../../../convex/_generated/dataModel";
 import { CardColor } from "@/types/CardColor";
 import { Team } from "../lobby/states/GameState";

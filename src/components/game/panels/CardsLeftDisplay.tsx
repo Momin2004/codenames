@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { Team } from "../lobby/states/GameState";
+import { Team } from "../../lobby/states/GameState";
 
 export function CardsLeftDisplay({
   team,
