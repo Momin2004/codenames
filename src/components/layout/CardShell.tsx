@@ -1,8 +1,10 @@
 import { Box, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { createSxStyles } from "@/utils/createSxStyles";
+import { TileType } from "@/types/board";
+import { cardBackGroundColor, CardColor } from "@/types/CardColor";
 
-const useStyles = () =>
+const useStyles = (color: CardColor = CardColor.Default) =>
   createSxStyles({
     root: {
       width: "min(560px, 100%)",
@@ -15,7 +17,7 @@ const useStyles = () =>
       position: "relative",
       overflow: "hidden",
 
-      bgcolor: "rgba(255,255,255,0.06)",
+      bgcolor: cardBackGroundColor[color],
       border: "1px solid",
       borderColor: "rgba(255,255,255,0.14)",
 
@@ -61,6 +63,7 @@ export type CardShellProps = {
   actions?: ReactNode;
   actionsAlign?: FooterAlign;
   width?: string;
+  color?: CardColor
 };
 
 export function CardShell({
@@ -71,8 +74,9 @@ export function CardShell({
   actions,
   actionsAlign = "right",
   width,
+  color
 }: CardShellProps) {
-  const styles = useStyles();
+  const styles = useStyles(color);
 
   const justify =
     actionsAlign === "left"

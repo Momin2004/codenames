@@ -11,24 +11,24 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { CardShell } from "@/components/layout/CardShell";
 
-type Team = 0 | 1 | 2;
-type Role = 0 | 1 | 2;
+export type Team = 0 | 1 | 2;
+export type Role = 0 | 1 | 2;
 
-function toTeam(p: Doc<"player">): Team {
+export function toTeam(p: Doc<"player">): Team {
   return Number((p as any).team ?? 0) as Team;
 }
 
-function toRole(p: Doc<"player">): Role {
+export function toRole(p: Doc<"player">): Role {
   return Number((p as any).role ?? (p as any).task ?? 0) as Role;
 }
 
-function teamLabel(t: Team) {
+export function teamLabel(t: Team) {
   if (t === 1) return "Blue";
   if (t === 2) return "Red";
   return "None";
 }
 
-function roleLabel(r: Role) {
+export function roleLabel(r: Role) {
   if (r === 2) return "Spymaster";
   if (r === 1) return "Operatives";
   return "None";

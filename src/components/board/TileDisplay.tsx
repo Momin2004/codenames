@@ -6,19 +6,19 @@ interface TileDisplayProps {
   tile: Tile;
 }
 
-function getTileBg(tile: Tile) {
+export function getTileBg(tile: Tile) {
   if (!tile.isGuessed) return "rgba(255,255,255,0.08)";
 
   switch (tile.type) {
     case TileType.Red:
-      return "rgba(244, 67, 54, 0.55)";
+      return "rgba(244, 67, 54, 0.20)";
     case TileType.Blue:
-      return "rgba(33, 150, 243, 0.55)";
+      return "rgba(33, 149, 243, 0.20)";
     case TileType.Black:
-      return "rgba(0,0,0,0.65)";
+      return "rgba(0,0,0,0.50)";
     case TileType.Neutral:
     default:
-      return "rgba(255,255,255,0.18)";
+      return "rgba(255,255,255,0.20)";
   }
 }
 
