@@ -144,26 +144,34 @@ export function GameState({
   const redCardsLeft = "—";
 
   return (
-    <Container>
-      <Stack direction="row" sx={{ gap: 4 }}>
+    <Box sx={{
+      display: "grid",
+      gridTemplateColumns: "1fr auto 1fr",
+      alignItems: "start",
+      gap: 4,
+      width: "100%",
+    }}>
+      <Box sx={{ justifySelf: "end" }}>
         <TeamPanel
           team="blue"
           operativePlayers={blueOperatives}
           spymasterPlayers={blueSpymasters}
           cardsLeft={blueCardsLeft}
         />
+      </Box>
 
-        <CardShell width="fit-content">
-          <BoardDisplay tiles={tiles ?? tileTemplate} />
-        </CardShell>
+      <CardShell width="fit-content">
+        <BoardDisplay tiles={tiles ?? tileTemplate} />
+      </CardShell>
 
+      <Box sx={{ justifySelf: "start" }}>
         <TeamPanel
           team="red"
           operativePlayers={redOperatives}
           spymasterPlayers={redSpymasters}
           cardsLeft={redCardsLeft}
         />
-      </Stack>
-    </Container>
+      </Box>
+    </Box >
   );
 }
