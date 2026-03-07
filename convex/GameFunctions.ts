@@ -149,16 +149,8 @@ export const setTurnHint = mutation({
       throw new Error("You can only set a clue during the clue phase");
     }
 
-    if (!flow.currentTurn || flow.turnIndex < 0) {
-      throw new Error("No active turn found");
-    }
-
     if (player.team !== flow.activeTeam) {
       throw new Error("Player is not on the active team");
-    }
-
-    if (flow.currentTurn.status !== TurnStatus.Clue) {
-      throw new Error("This turn is not waiting for a clue");
     }
 
     const cleanedWord = args.word.trim();
@@ -171,14 +163,31 @@ export const setTurnHint = mutation({
     }
 
     const updatedTurns = [...game.turns];
-    updatedTurns[flow.turnIndex] = {
-      ...updatedTurns[flow.turnIndex],
-      hint: {
-        word: cleanedWord,
-        amount: args.amount,
-      },
-      status: TurnStatus.Guess,
-    };
+
+    if (flow.currentTurn && flow.turnIndex >= 0) {
+      if (flow.currentTurn.status !== TurnStatus.Clue) {
+        throw new Error("This turn is not waiting for a clue");
+      }
+
+      updatedTurns[flow.turnIndex] = {
+        ...flow.currentTurn,
+        hint: {
+          word: cleanedWord,
+          amount: args.amount,
+        },
+        status: TurnStatus.Guess,
+      };
+    } else {
+      updatedTurns.push({
+        team: flow.activeTeam,
+        guesses: [],
+        hint: {
+          word: cleanedWord,
+          amount: args.amount,
+        },
+        status: TurnStatus.Guess,
+      });
+    }
 
     await ctx.db.patch(lobby.currentGame, {
       turns: updatedTurns,
