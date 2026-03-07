@@ -109,6 +109,9 @@ export const setTurnHint = mutation({
 
     const updatedTurns = [...game.turns];
     const lastTurnIndex = updatedTurns.length - 1;
+    
+    if (game.turns[lastTurnIndex].hint) throw new Error("already hint in turn")
+    
     updatedTurns[lastTurnIndex] = {
       ...updatedTurns[lastTurnIndex],
       hint: { word: args.word, amount: args.amount },
@@ -176,9 +179,37 @@ export const makeMove = mutation({
       turns: updatedTurns,
     });
 
+    //if (game.turns[turnPos].guesses.length >= (game.turns[turnPos].hint?.amount ?? 0)) 
+
     return { success: true };
   },
 });
+
+export const getPlayerState = query({
+  args: {
+    playerId: v.id("player"),
+  },
+  handler: async (ctx, args) => {
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if  (!player.currentLobby) throw new Error("lobby not found");
+
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if  (!lobby.currentGame) throw new Error("game not found");
+    
+    const game = await ctx.db.get(lobby.currentGame);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+
+    const currentTurn = game.turns.length - 1;
+
+    if (player.team !== game.turns[currentTurn].team) return [0, player]
+    if (player.task === 2n && game.turns[currentTurn].hint) return [0, player]
+    if (player.task === 1n && !game.turns[currentTurn].hint) return [0, player]
+    return [1, player]
+  }
+})
 
 export const getBoard = query({
   args: {
@@ -197,38 +228,20 @@ export const getBoard = query({
     if (!game) throw new Error("Game not found");
     if (!game.active) throw new Error("Game is not active");
 
+    const redLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 1n);
+
+    const blueLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 2n);
+
     if (player.task === 2n) {
-      const redLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 1n);
-
-      const blueLeft = game.board.filter((tile) => !tile.isGuessed && tile.type === 2n);
-
       return {board: game.board, cardLeft: [blueLeft.length, redLeft.length]};
     } else {
-      return game.board.map((t) => ({
+      return {board: game.board.map((t) => ({
         position: t.position,
         word: t.word,
         isGuessed: t.isGuessed,
         type: t.isGuessed ? t.type : null,
-      }));
+      })), cardLeft: [blueLeft.length, redLeft.length]};
     }
-  },
-});
-
-export const getPublicBoard = query({
-  args: {
-    gameId: v.id("game"),
-  },
-  handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId);
-    if (!game) throw new Error("Game not found");
-    if (!game.active) throw new Error("Game is not active");
-
-    return game.board.map((t) => ({
-      position: t.position,
-      word: t.word,
-      isGuessed: t.isGuessed,
-      type: t.isGuessed ? t.type : null,
-    }));
   },
 });
 
