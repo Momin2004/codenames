@@ -109,7 +109,7 @@ export const startNewTurn = mutation({
     }
 
     const turn: Turn = {
-      team: flow.activeTeam,
+      team: switchTeam(flow.activeTeam),
       guesses: [],
       status: TurnStatus.Clue,
     };
