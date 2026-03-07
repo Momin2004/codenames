@@ -1,9 +1,12 @@
-export enum TileType {
-  Neutral = 0,
-  Red = 1,
-  Blue = 2,
-  Black = 3,
-}
+export const TileType = {
+  Neutral: 0n,
+  Red: 1n,
+  Blue: 2n,
+  Black: 3n,
+  d: null
+} as const;
+
+export type TileType = (typeof TileType)[keyof typeof TileType];
 
 export type PublicServerTile = {
   position: bigint;

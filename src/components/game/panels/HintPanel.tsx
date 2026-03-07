@@ -1,36 +1,53 @@
 import { useState } from "react";
 import { Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import { CardShell } from "../../layout/CardShell";
 
 type HintCount = number | "∞";
 
 interface HintPanelProps {
-  onSubmit?: (hint: { word: string; count: HintCount }) => void;
+  playerId: Id<"player">;
 }
 
 const hintOptions: HintCount[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, "∞"];
 
-export const HintPanel = ({ onSubmit }: HintPanelProps) => {
+export const HintPanel = ({ playerId }: HintPanelProps) => {
   const [word, setWord] = useState("");
   const [count, setCount] = useState<HintCount>(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const setTurnHint = useMutation(api.GameFunctions.setTurnHint);
+
+  const handleSubmit = async () => {
     const trimmedWord = word.trim();
-    if (!trimmedWord) return;
+    if (!trimmedWord || isSubmitting) return;
 
-    onSubmit?.({
-      word: trimmedWord,
-      count,
-    });
+    setIsSubmitting(true);
 
-    setWord("");
-    setCount(1);
+    try {
+      await setTurnHint({
+        playerId: playerId,
+        word: trimmedWord,
+        amount: count === "∞" ? -1n : BigInt(count),
+      });
+
+      setWord("");
+      setCount(1);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Box sx={{ mt: 2 }}>
-      <CardShell width="100%" >
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="stretch">
+      <CardShell width="100%">
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          alignItems="stretch"
+        >
           <TextField
             label="Word"
             value={word}
@@ -39,7 +56,7 @@ export const HintPanel = ({ onSubmit }: HintPanelProps) => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                handleSubmit();
+                void handleSubmit();
               }
             }}
           />
@@ -62,11 +79,11 @@ export const HintPanel = ({ onSubmit }: HintPanelProps) => {
 
           <Button
             variant="contained"
-            onClick={handleSubmit}
-            disabled={!word.trim()}
+            onClick={() => void handleSubmit()}
+            disabled={!word.trim() || isSubmitting}
             sx={{ minWidth: 120 }}
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </Stack>
       </CardShell>

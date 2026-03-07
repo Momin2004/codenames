@@ -4,48 +4,42 @@ import { Box, Card, Typography } from "@mui/material";
 
 interface TileDisplayProps {
   tile: Tile;
+  team: TileType;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 export function getTileBg(tile: Tile) {
-  if (!tile.isGuessed) return "rgba(255,255,255,0.08)";
-
   switch (tile.type) {
     case TileType.Red:
-      return "rgba(244, 67, 54, 0.20)";
+      return "rgba(244, 143, 177, 0.1)";
     case TileType.Blue:
-      return "rgba(33, 149, 243, 0.20)";
+      return "rgba(121, 134, 203, 0.1)";
     case TileType.Black:
-      return "rgba(0,0,0,0.50)";
+      return "rgba(0,0,0,0.5)";
     case TileType.Neutral:
+      return "rgba(255,255,255,0.10)";
     default:
-      return "rgba(255,255,255,0.20)";
+      return "rgba(15, 34, 39, 0.1)";
   }
 }
 
-function getTileBorder(tile: Tile) {
-  if (!tile.isGuessed) return "rgba(255,255,255,0.18)";
-
-  switch (tile.type) {
-    case TileType.Red:
-      return "rgba(244, 67, 54, 0.85)";
-    case TileType.Blue:
-      return "rgba(33, 150, 243, 0.85)";
-    case TileType.Black:
-      return "rgba(0,0,0,0.9)";
-    default:
-      return "rgba(255,255,255,0.35)";
-  }
+function getTileBorder(tile: Tile, team: TileType) {
+  if (tile.type === TileType.Red && team === TileType.Red) return "rgba(244, 143, 177, 1)";
+  if (tile.type === TileType.Blue && team === TileType.Blue) return "rgba(121, 134, 203, 1)";
+  return "rgba(0, 0, 0, 0)";
 }
 
-const useStyles = (tile: Tile) => {
+const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
   const bg = getTileBg(tile);
-  const border = getTileBorder(tile);
+  const border = getTileBorder(tile, team);
 
   return createSxStyles({
     root: {
       width: 160,
       height: 128,
       perspective: "1000px",
+      cursor: clickable ? "pointer" : "default",
     },
     flipper: {
       position: "relative",
@@ -64,11 +58,17 @@ const useStyles = (tile: Tile) => {
       backfaceVisibility: "hidden",
       WebkitBackfaceVisibility: "hidden",
       borderRadius: 3,
-
       bgcolor: bg,
       border: "1px solid",
       borderColor: border,
       boxShadow: tile.isGuessed ? "0 10px 25px rgba(0,0,0,0.25)" : "none",
+      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+      "&:hover": clickable
+        ? {
+          transform: "translateY(-2px)",
+          boxShadow: "0 10px 20px rgba(0,0,0,0.18)",
+        }
+        : undefined,
     },
     front: {},
     back: {
@@ -81,22 +81,22 @@ const useStyles = (tile: Tile) => {
       letterSpacing: 1,
       textTransform: "uppercase",
       userSelect: "none",
-      color: tile.isGuessed && tile.type === TileType.Black ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.92)",
+      color: "rgba(255,255,255,0.92)",
     },
   });
 };
 
-export const TileDisplay = ({ tile }: TileDisplayProps) => {
-  const styles = useStyles(tile);
+export const TileDisplay = ({ tile, team, onClick, disabled = false }: TileDisplayProps) => {
+  const clickable = !!onClick && !disabled && !tile.isGuessed;
+  const styles = useStyles(tile, team, clickable);
 
   return (
-    <Box sx={styles.root}>
+    <Box sx={styles.root} onClick={clickable ? onClick : undefined}>
       <Box sx={styles.flipper}>
         <Card sx={{ ...styles.face, ...styles.front }}>
           <Typography sx={styles.word}>{tile.word || "—"}</Typography>
         </Card>
 
-        {/* Word also visible on the back (so flipping doesn’t hide it) */}
         <Card sx={{ ...styles.face, ...styles.back }}>
           <Typography sx={styles.word}>{tile.word || "—"}</Typography>
         </Card>
