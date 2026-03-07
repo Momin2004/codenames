@@ -1,6 +1,20 @@
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { query, mutation } from "./_generated/server";
+import { Role, Team } from "./DataTypes";
+import { Doc } from "./_generated/dataModel";
+
+const playerTeamValidator = v.union(
+  v.literal(Team.Neutral),
+  v.literal(Team.Red),
+  v.literal(Team.Blue),
+);
+
+const playerRoleValidator = v.union(
+  v.literal(Role.Operative),
+  v.literal(Role.Spymaster),
+);
+
+type NewPlayer = Omit<Doc<"player">, "_id" | "_creationTime">;
 
 export const createLobby = mutation({
   args: {
@@ -77,8 +91,8 @@ export const changePlayerRole = mutation({
   args: {
     lobbyId: v.id("lobby"),
     playerId: v.id("player"),
-    team: v.int64(),
-    task: v.int64(),
+    team: playerTeamValidator,
+    task: playerRoleValidator,
   },
 
   handler: async (ctx, args) => {
@@ -168,7 +182,7 @@ export const createPlayer = mutation({
   },
 
   handler: async (ctx, args) => {
-    const player = {
+    const player: NewPlayer = {
       name: args.username,
       team: 0n,
       task: 0n,

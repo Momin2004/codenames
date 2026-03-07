@@ -1,0 +1,9 @@
+wait for your turn, x is giving a clue,
+wait for your turn, x is guessing
+wait for x to give you a clue
+Tap on cards you think match the clue
+
+wait for your turn, x is giving a clue,
+wait for your turn, x is guessing
+Give your operatives a clue
+x is guessing now

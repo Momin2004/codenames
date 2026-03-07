@@ -46,7 +46,6 @@ export const GameDisplay = ({
   const getPlayers = (team: Team, role: Role) =>
     players.filter((p) => p.team === TEAM_ID[team] && p.task === TASK_ID[role]);
 
-
   const blueOperatives = getPlayers("blue", "operative");
   const blueSpymasters = getPlayers("blue", "spymaster");
   const redOperatives = getPlayers("red", "operative");
