@@ -1,4 +1,4 @@
-import { BoardDisplay } from "@/components/board/BoardDisplay";
+import { BoardDisplay } from "@/components/game/board/BoardDisplay";
 import { Background } from "@/components/layout/Background";
 
 export default function GameOverview() {

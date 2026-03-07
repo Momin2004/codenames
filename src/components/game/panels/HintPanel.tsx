@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { CardShell } from "../layout/CardShell";
+import { CardShell } from "../../layout/CardShell";
 
 type HintCount = number | "∞";
 
