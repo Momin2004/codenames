@@ -1,11 +1,13 @@
 import { Tile, TileType } from "@/types/board";
 import { createSxStyles } from "@/utils/createSxStyles";
-import { Box, Card, Typography } from "@mui/material";
+import { Box, Card, IconButton, Typography } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
 
 interface TileDisplayProps {
   tile: Tile;
   team: TileType;
-  onClick?: () => void;
+  onClick: () => void;
+  onConfirmClick: () => void;
   disabled?: boolean;
 }
 
@@ -30,7 +32,12 @@ function getTileBorder(tile: Tile, team: TileType) {
   return "rgba(0, 0, 0, 0)";
 }
 
-const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
+const useStyles = (
+  tile: Tile,
+  team: TileType,
+  clickable: boolean,
+  hasSelection: boolean
+) => {
   const bg = getTileBg(tile);
   const border = getTileBorder(tile, team);
 
@@ -40,6 +47,7 @@ const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
       height: 128,
       perspective: "1000px",
       cursor: clickable ? "pointer" : "default",
+      position: "relative",
     },
     flipper: {
       position: "relative",
@@ -53,6 +61,7 @@ const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
       position: "absolute",
       inset: 0,
       display: "flex",
+      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       backfaceVisibility: "hidden",
@@ -60,9 +69,13 @@ const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
       borderRadius: 3,
       bgcolor: bg,
       border: "1px solid",
-      borderColor: border,
-      boxShadow: tile.isGuessed ? "0 10px 25px rgba(0,0,0,0.25)" : "none",
-      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+      borderColor: hasSelection ? "rgba(255,255,255,0.8)" : border,
+      boxShadow: tile.isGuessed
+        ? "0 10px 25px rgba(0,0,0,0.25)"
+        : hasSelection
+          ? "0 0 0 2px rgba(255,255,255,0.18), 0 10px 20px rgba(0,0,0,0.18)"
+          : "none",
+      transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
       "&:hover": clickable
         ? {
           transform: "translateY(-2px)",
@@ -83,22 +96,76 @@ const useStyles = (tile: Tile, team: TileType, clickable: boolean) => {
       userSelect: "none",
       color: "rgba(255,255,255,0.92)",
     },
+    selectedBy: {
+      mt: 0.75,
+      px: 1,
+      textAlign: "center",
+      fontSize: 11,
+      lineHeight: 1.2,
+      color: "rgba(255,255,255,0.72)",
+    },
+    confirmButton: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+      zIndex: 2,
+      width: 28,
+      height: 28,
+      bgcolor: "rgba(255,255,255,0.18)",
+      color: "rgba(255,255,255,0.95)",
+      backdropFilter: "blur(6px)",
+      "&:hover": {
+        bgcolor: "rgba(255,255,255,0.28)",
+      },
+    },
   });
 };
 
-export const TileDisplay = ({ tile, team, onClick, disabled = false }: TileDisplayProps) => {
+export const TileDisplay = ({
+  tile,
+  team,
+  onClick,
+  onConfirmClick,
+  disabled = false,
+}: TileDisplayProps) => {
   const clickable = !!onClick && !disabled && !tile.isGuessed;
-  const styles = useStyles(tile, team, clickable);
+  const hasSelection = tile.selectedByNames != undefined;
+  const showConfirmButton = tile.selectedByMe && !tile.isGuessed && !disabled;
+  const styles = useStyles(tile, team, clickable, hasSelection);
 
   return (
     <Box sx={styles.root} onClick={clickable ? onClick : undefined}>
+      {showConfirmButton && (
+        <IconButton
+          sx={styles.confirmButton}
+          onClick={(event) => {
+            event.stopPropagation();
+            onConfirmClick();
+          }}
+        >
+          <CheckIcon fontSize="small" />
+        </IconButton>
+      )}
+
       <Box sx={styles.flipper}>
         <Card sx={{ ...styles.face, ...styles.front }}>
           <Typography sx={styles.word}>{tile.word || "—"}</Typography>
+
+          {hasSelection && (
+            <Typography sx={styles.selectedBy}>
+              {tile.selectedByNames.join(", ")}
+            </Typography>
+          )}
         </Card>
 
         <Card sx={{ ...styles.face, ...styles.back }}>
           <Typography sx={styles.word}>{tile.word || "—"}</Typography>
+
+          {hasSelection && (
+            <Typography sx={styles.selectedBy}>
+              {tile.selectedByNames.join(", ")}
+            </Typography>
+          )}
         </Card>
       </Box>
     </Box>

@@ -31,6 +31,7 @@ export const GameDisplay = ({
 
   const makeMove = useMutation(api.GameFunctions.makeMove);
   const endGuessing = useMutation(api.GameFunctions.startNewTurn);
+  const selectTile = useMutation(api.GameFunctions.selectCard);
 
   const myTeamTileType =
     gameState.myTeam === 1n
@@ -41,6 +42,15 @@ export const GameDisplay = ({
 
   const handleTileClick = async (tile: Tile) => {
     if (!gameState.canGuess || tile.isGuessed) return;
+
+    await selectTile({
+      playerId,
+      tileIndex: tile.position,
+    });
+  };
+
+  const handleConfirmClick = async (tile: Tile) => {
+    if (!gameState.canGuess || tile.isGuessed || !tile.selectedByMe) return;
 
     await makeMove({
       playerId,
@@ -120,6 +130,7 @@ export const GameDisplay = ({
             team={myTeamTileType}
             canClickTiles={gameState.canGuess}
             onTileClick={handleTileClick}
+            onConfirmClick={handleConfirmClick}
           />
 
           {gameState.canGiveClue && <HintPanel playerId={playerId} />}

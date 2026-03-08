@@ -20,10 +20,14 @@ export function GameState({
   playerId,
   players,
 }: GameStateProps) {
+
   const board = useQuery(
     api.GameFunctions.getBoard, { playerId }
   );
-  const gameState = useQuery(api.GameFunctions.getPlayerGameState, { playerId });
+
+  const gameState = useQuery(
+    api.GameFunctions.getPlayerGameState, { playerId }
+  );
 
   useEffect(() => {
     console.log("gameId", gameId);

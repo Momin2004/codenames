@@ -13,6 +13,8 @@ export type PublicServerTile = {
   word: string;
   isGuessed: boolean;
   type: bigint | null;
+  selectedByNames: string[];
+  selectedByMe: boolean;
 };
 
 export type Tile = {
@@ -20,6 +22,8 @@ export type Tile = {
   word: string;
   isGuessed: boolean;
   type: TileType;
+  selectedByNames: string[];
+  selectedByMe: boolean;
 };
 
 function toTileType(t: bigint): TileType {
@@ -38,5 +42,7 @@ export function toTileFromPublic(t: PublicServerTile): Tile {
     word: t.word,
     isGuessed: t.isGuessed,
     type: t.type === null ? TileType.Neutral : toTileType(t.type),
+    selectedByMe: t.selectedByMe,
+    selectedByNames: t.selectedByNames
   };
 }

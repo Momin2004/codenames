@@ -111,8 +111,8 @@ export const startNewTurn = mutation({
       status: TurnStatus.Clue,
     };
 
-    const updatedBoard = game.board.map((tile) => {tile.selectedBy = []; return tile})
-    
+    const updatedBoard = game.board.map((tile) => { tile.selectedBy = []; return tile })
+
     await ctx.db.patch(lobby.currentGame, {
       board: updatedBoard,
       turns: [...game.turns, turn],
@@ -302,8 +302,8 @@ export const makeMove = mutation({
         status: TurnStatus.Clue,
       };
 
-      const updatedBoard = game.board.map((tile) => {tile.selectedBy = []; return tile})
-    
+      const updatedBoard = game.board.map((tile) => { tile.selectedBy = []; return tile })
+
       await ctx.db.patch(lobby.currentGame, {
         board: updatedBoard,
         turns: [...game.turns, turn],
@@ -357,10 +357,14 @@ export const getBoard = query({
     const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
 
+    const players = (
+      await Promise.all(game.players.map((playerId) => ctx.db.get(playerId)))
+    ).filter((player): player is Doc<"player"> => player !== null);
+
     const revealAll = player.task === Role.Spymaster || !game.active;
 
     return {
-      board: revealAll ? game.board : maskBoard(game.board),
+      board: mapBoardForPlayer(game.board, players, args.playerId, revealAll),
       cardLeft: {
         red: countRemaining(game.board, Team.Red),
         blue: countRemaining(game.board, Team.Blue),
@@ -368,6 +372,7 @@ export const getBoard = query({
     };
   },
 });
+
 
 export const selectCard = mutation({
   args: {
@@ -388,7 +393,7 @@ export const selectCard = mutation({
     const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
     if (!game.active) throw new Error("Game is not active");
-    
+
     const flow = getFlow(game)
 
     if (player.team !== flow.activeTeam) throw new Error("player must be in active team");
@@ -400,8 +405,8 @@ export const selectCard = mutation({
 
     if (targetTile.selectedBy.includes(args.playerId)) {
       updatedBoard[tilePos] = {
-      ...targetTile,
-      selectedBy: targetTile.selectedBy.filter(id => id !== args.playerId),
+        ...targetTile,
+        selectedBy: targetTile.selectedBy.filter(id => id !== args.playerId),
       };
     } else {
       updatedBoard[tilePos] = {
@@ -413,31 +418,6 @@ export const selectCard = mutation({
       board: updatedBoard,
     });
   }
-})
-
-
-export const getPublicBoard = query({
-  args: {
-    gameId: v.id("game"),
-  },
-
-  handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId);
-    if (!game) throw new Error("Game not found");
-
-    const revealAll = !game.active;
-
-    return {
-      board: revealAll ? game.board : maskBoard(game.board),
-      cardLeft: {
-        red: countRemaining(game.board, Team.Red),
-        blue: countRemaining(game.board, Team.Blue),
-      },
-      revealAll,
-      gameActive: game.active,
-      winnerTeam: game.winnerTeam,
-    };
-  },
 });
 
 export const getPlayerGameState = query({
@@ -577,13 +557,30 @@ function createCodenamesBoard(words: string[]): {
   };
 }
 
-function maskBoard(board: BoardTile[]) {
+function mapBoardForPlayer(
+  board: BoardTile[],
+  players: Doc<"player">[],
+  playerId: Id<"player">,
+  revealAll: boolean,
+) {
+  const playerNameById = createPlayerNameById(players);
+
   return board.map((tile) => ({
     position: tile.position,
     word: tile.word,
     isGuessed: tile.isGuessed,
-    type: tile.isGuessed ? tile.type : null,
+    type: revealAll || tile.isGuessed ? tile.type : null,
+    selectedByNames: (tile.selectedBy ?? [])
+      .map((selectedPlayerId) => playerNameById.get(selectedPlayerId))
+      .filter((name): name is string => Boolean(name)),
+    selectedByMe: (tile.selectedBy ?? []).includes(playerId),
   }));
+}
+
+function createPlayerNameById(players: Doc<"player">[]) {
+  return new Map(
+    players.map((player) => [player._id, player.name] as const),
+  );
 }
 
 function switchTeam(team: PlayableTeam): PlayableTeam {

@@ -6,7 +6,8 @@ import { createSxStyles } from "@/utils/createSxStyles";
 interface BoardDisplayProps {
   tiles: Tile[];
   team: TileType;
-  onTileClick?: (tile: Tile) => void;
+  onTileClick: (tile: Tile) => void;
+  onConfirmClick: (tile: Tile) => void;
   canClickTiles?: boolean;
 }
 
@@ -24,6 +25,7 @@ export const BoardDisplay = ({
   tiles,
   team,
   onTileClick,
+  onConfirmClick,
   canClickTiles = false,
 }: BoardDisplayProps) => {
   const tileCount = tiles.length;
@@ -38,7 +40,8 @@ export const BoardDisplay = ({
           tile={tile}
           team={team}
           disabled={!canClickTiles || tile.isGuessed}
-          onClick={onTileClick ? () => onTileClick(tile) : undefined}
+          onClick={() => onTileClick(tile)}
+          onConfirmClick={() => onConfirmClick(tile)}
         />
       ))}
     </Box>
