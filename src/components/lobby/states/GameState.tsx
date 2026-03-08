@@ -24,7 +24,6 @@ export function GameState({
     api.GameFunctions.getBoard, { playerId }
   );
   const gameState = useQuery(api.GameFunctions.getPlayerGameState, { playerId });
-  const endGuessing = useMutation(api.GameFunctions.endGuessing);
 
   useEffect(() => {
     console.log("gameId", gameId);
@@ -43,12 +42,10 @@ export function GameState({
 
   return (
     <GameDisplay
-      gameId={gameId}
       playerId={playerId}
       players={players}
       board={board}
       gameState={gameState}
-      onEndGuessing={() => endGuessing({ playerId })
-      } />
+    />
   )
 }
