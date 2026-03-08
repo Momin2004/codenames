@@ -489,6 +489,18 @@ export const getPlayerGameState = query({
       flow.activeTeam === player.team &&
       player.task === Role.Operative;
 
+    const players = await ctx.db
+      .query("player")
+      .filter(q => q.eq(q.field("currentLobby"), player.currentLobby))
+      .collect();
+
+    const activeRoleNeeded =
+      flow.phase === GamePhase.Clue ? Role.Spymaster : Role.Operative;
+
+    const activePlayerNames =  players
+      .filter(p => p.team === flow.activeTeam && p.task === activeRoleNeeded)
+      .map(p => p.name);
+
     return {
       phase: flow.phase,
       activeTeam: flow.activeTeam,
@@ -500,6 +512,7 @@ export const getPlayerGameState = query({
             : null,
       myTeam: player.team,
       myRole: player.task,
+      activePlayers: activePlayerNames,
       startingTeam: game.startingTeam,
       winnerTeam: game.winnerTeam,
       gameActive: game.active,
