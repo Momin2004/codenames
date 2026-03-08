@@ -174,6 +174,17 @@ export function WaitingState({
   const unassigned = players.filter((p) => toTeam(p) === 0 || toRole(p) === 0);
   const changePlayerRole = useMutation(api.LobbyFunctions.changePlayerRole);
 
+  const me = players.find((p) => p._id === playerId);
+  const isHost = Boolean(me?.organizer);
+
+  const blueHasPlayers = blueSpymaster.length > 0 && blueOperatives.length > 0;
+  const redHasPlayers = redSpymaster.length > 0 && redOperatives.length > 0;
+
+  const canStartGame =
+    isHost &&
+    blueHasPlayers &&
+    redHasPlayers;
+
   return (
     <CardShell width="fit-content">
       <Stack spacing={3}>
@@ -306,7 +317,7 @@ export function WaitingState({
           <Button variant="outlined" onClick={onCopyInvite}>
             Copy Invite Link
           </Button>
-          <Button variant="contained" disabled={players.length < 2} onClick={onStartGame}>
+          <Button variant="contained" disabled={!canStartGame} onClick={onStartGame}>
             Start Game
           </Button>
         </Box>
