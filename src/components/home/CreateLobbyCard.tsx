@@ -100,7 +100,7 @@ export const CreateLobbyCard = () => {
           const { playerId } = await createPlayer({ username });
           const result = await createLobby({ admin: playerId });
 
-          navigate(`/lobby/${result.lobbyid}`, { state: { playerId } });
+          navigate(`/${result.lobbyid}`, { state: { playerId } });
         }}
       >
         {({
