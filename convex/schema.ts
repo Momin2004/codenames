@@ -59,6 +59,7 @@ export default defineSchema({
           word: v.string(),
           type: boardTileTypeValidator,
           isGuessed: v.boolean(),
+          selectedBy: v.array(v.id("player"))
         }),
       ),
       turns: v.array(turnValidator),

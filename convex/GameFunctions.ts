@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 import { DeckTemplate } from "./DeckTemplate";
 import { GamePhase, PlayableTeam, Role, Team, TurnStatus } from "./DataTypes";
+import { Task } from "@mui/icons-material";
 
 type GameDoc = Doc<"game">;
 type Turn = GameDoc["turns"][number];
@@ -84,6 +85,7 @@ export const startNewTurn = mutation({
     const player = await ctx.db.get(args.playerId);
     if (!player) throw new Error("Player not found");
     if (!player.currentLobby) throw new Error("Lobby not found");
+<<<<<<< Updated upstream
     if (player.task !== Role.Operative) throw new Error("Player must be operative");
 
     const lobby = await ctx.db.get(player.currentLobby);
@@ -110,7 +112,10 @@ export const startNewTurn = mutation({
       status: TurnStatus.Clue,
     };
 
+    const updatedBoard = game.board.map((tile) => {tile.selectedBy = []; return tile})
+    
     await ctx.db.patch(lobby.currentGame, {
+      board: updatedBoard,
       turns: [...game.turns, turn],
     });
 
@@ -307,55 +312,6 @@ export const makeMove = mutation({
   },
 });
 
-export const endGuessing = mutation({
-  args: {
-    playerId: v.id("player"),
-  },
-
-  handler: async (ctx, args) => {
-    const player = await ctx.db.get(args.playerId);
-    if (!player) throw new Error("Player not found");
-    if (!player.currentLobby) throw new Error("Lobby not found");
-    if (player.task !== Role.Operative) throw new Error("Player must be operative");
-
-    const lobby = await ctx.db.get(player.currentLobby);
-    if (!lobby) throw new Error("Lobby not found");
-    if (!lobby.currentGame) throw new Error("Game not found");
-
-    const game = await ctx.db.get(lobby.currentGame);
-    if (!game) throw new Error("Game not found");
-    if (!game.active) throw new Error("Game is not active");
-
-    const flow = getFlow(game);
-
-    if (flow.phase !== GamePhase.Guess) {
-      throw new Error("You can only end guessing during the guess phase");
-    }
-
-    if (!flow.currentTurn || flow.turnIndex < 0) {
-      throw new Error("No active turn found");
-    }
-
-    if (player.team !== flow.activeTeam) {
-      throw new Error("Player is not on the active turn team");
-    }
-
-    const updatedTurns = [...game.turns];
-    updatedTurns[flow.turnIndex] = {
-      ...flow.currentTurn,
-      status: TurnStatus.Finished,
-    };
-
-    await ctx.db.patch(lobby.currentGame, {
-      turns: updatedTurns,
-    });
-
-    //if (game.turns[turnPos].guesses.length >= (game.turns[turnPos].hint?.amount ?? 0)) 
-
-    return { success: true };
-  },
-});
-
 export const getPlayerState = query({
   args: {
     playerId: v.id("player"),
@@ -410,6 +366,53 @@ export const getBoard = query({
     };
   },
 });
+
+export const selectCard = mutation({
+  args: {
+    playerId: v.id("player"),
+    tileIndex: v.int64(),
+  },
+
+  handler: async (ctx, args) => {
+    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if (!player.currentLobby) throw new Error("lobby not found");
+    if (player.task === Role.Spymaster) throw new Error("player must be operative");
+
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("lobby not found");
+    if (!lobby.currentGame) throw new Error("game not found");
+
+    const game = await ctx.db.get(lobby.currentGame);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+    
+    const flow = getFlow(game)
+
+    if (player.team !== flow.activeTeam) throw new Error("player must be in active team");
+
+    const tilePos = Number(args.tileIndex);
+
+    const targetTile = game.board[tilePos];
+    const updatedBoard = [...game.board];
+
+    if (targetTile.selectedBy.includes(args.playerId)) {
+      updatedBoard[tilePos] = {
+      ...targetTile,
+      selectedBy: targetTile.selectedBy.filter(id => id !== args.playerId),
+      };
+    } else {
+      updatedBoard[tilePos] = {
+        ...targetTile,
+        selectedBy: [...targetTile.selectedBy, args.playerId],
+      };
+    }
+    await ctx.db.patch(lobby.currentGame, {
+      board: updatedBoard,
+    });
+  }
+})
+
 
 export const getPublicBoard = query({
   args: {
@@ -554,6 +557,7 @@ function createCodenamesBoard(words: string[]): {
       word,
       type: BigInt(shuffledTypes[index]) as BoardTile["type"],
       isGuessed: false,
+      selectedBy: []
     })),
   };
 }
