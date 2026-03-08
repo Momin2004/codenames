@@ -122,18 +122,12 @@ export const GameDisplay = ({
             onTileClick={handleTileClick}
           />
 
-          {gameState.canEndGuessing && (
-            <Button variant="contained" onClick={handleEndGuessing}>
-              End guessing
-            </Button>
-          )}
-
           {gameState.canGiveClue && <HintPanel playerId={playerId} />}
 
           {gameState.canEndGuessing && (
             <Button
               variant="contained"
-              onClick={onEndGuessing}
+              onClick={handleEndGuessing}
               sx={{
                 mt: 1,
                 borderRadius: 2,
