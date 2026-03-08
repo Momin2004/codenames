@@ -1,16 +1,18 @@
 import { Avatar, Stack, Typography } from "@mui/material";
 import { CardShell } from "../../layout/CardShell";
-import { Doc } from "../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { CardColor } from "@/types/CardColor";
 
 export function PlayerListCard({
   title,
   players,
   color,
+  playerId
 }: {
   title: string;
   players: Doc<"player">[];
   color: CardColor;
+  playerId: Id<"player">
 }) {
   return (
     <CardShell width="250px" color={color}>
@@ -30,7 +32,9 @@ export function PlayerListCard({
           </Typography>
         ) : (
           players.map((player) => {
-            const name = "name" in player ? String(player.name) : String(player);
+            var name = "name" in player ? String(player.name) : String(player);
+            if (player._id === playerId)
+              name = name.concat(" (you)")
             const initial = name.charAt(0).toUpperCase();
 
             return (

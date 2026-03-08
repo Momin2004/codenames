@@ -79,6 +79,7 @@ export const GameDisplay = ({
           team="blue"
           operativePlayers={blueOperatives}
           spymasterPlayers={blueSpymasters}
+          playerId={playerId}
           cardsLeft={String(gameState.remainingCards.blue)}
         />
       </Box>
@@ -167,6 +168,7 @@ export const GameDisplay = ({
           team="red"
           operativePlayers={redOperatives}
           spymasterPlayers={redSpymasters}
+          playerId={playerId}
           cardsLeft={String(gameState.remainingCards.red)}
         />
       </Box>
