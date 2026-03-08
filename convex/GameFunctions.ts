@@ -76,6 +76,33 @@ export const createGame = mutation({
   },
 });
 
+export const endGamee = mutation({
+  args: {
+    playerId: v.id("player"),
+  },
+
+  handler: async (ctx, args) => {    const player = await ctx.db.get(args.playerId);
+    if (!player) throw new Error("Player not found");
+    if (!player.currentLobby) throw new Error("Lobby not found");
+
+    const lobby = await ctx.db.get(player.currentLobby);
+    if (!lobby) throw new Error("Lobby not found");
+    if (!lobby.currentGame) throw new Error("Game not found");
+
+    const game = await ctx.db.get(lobby.currentGame);
+    if (!game) throw new Error("Game not found");
+    if (!game.active) throw new Error("Game is not active");
+
+    const flow = getFlow(game);
+
+    if (flow.phase === GamePhase.GameOver) {
+      await ctx.db.patch(player.currentLobby, {currentGame: null})
+      return { success: true };
+    }
+    throw Error("gamestate not over")
+  }
+})
+
 export const startNewTurn = mutation({
   args: {
     playerId: v.id("player"),
