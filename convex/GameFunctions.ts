@@ -84,7 +84,7 @@ export const startNewTurn = mutation({
     const player = await ctx.db.get(args.playerId);
     if (!player) throw new Error("Player not found");
     if (!player.currentLobby) throw new Error("Lobby not found");
-    if (player.task !== Role.Spymaster) throw new Error("Player must be spymaster");
+    if (player.task !== Role.Operative) throw new Error("Player must be operative");
 
     const lobby = await ctx.db.get(player.currentLobby);
     if (!lobby) throw new Error("Lobby not found");
@@ -96,16 +96,12 @@ export const startNewTurn = mutation({
 
     const flow = getFlow(game);
 
-    if (flow.phase !== GamePhase.Clue) {
+    if (flow.phase !== GamePhase.Guess) {
       throw new Error("A new turn cannot be started right now");
     }
 
     if (player.team !== flow.activeTeam) {
       throw new Error("It is not your team's clue turn");
-    }
-
-    if (flow.currentTurn && flow.currentTurn.status !== TurnStatus.Finished) {
-      throw new Error("The current turn has already started");
     }
 
     const turn: Turn = {

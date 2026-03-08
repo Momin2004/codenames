@@ -45,12 +45,10 @@ export type GameStateResponse = {
 };
 
 export type GameDisplayProps = {
-  gameId: Id<"game"> | null | undefined;
   playerId: Id<"player">;
   players: Doc<"player">[];
   board: BoardResponse;
   gameState: GameStateResponse;
-  onEndGuessing?: () => void;
 };
 
 export type Team = "blue" | "red";

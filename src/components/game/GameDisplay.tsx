@@ -10,12 +10,10 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 export const GameDisplay = ({
-  gameId,
   playerId,
   players,
   board,
-  gameState,
-  onEndGuessing,
+  gameState
 }: GameDisplayProps) => {
   const tiles = board.board;
 
@@ -32,7 +30,7 @@ export const GameDisplay = ({
   const guessesRemaining = formatGuessesRemaining(gameState.guessesRemaining);
 
   const makeMove = useMutation(api.GameFunctions.makeMove);
-  const endGuessing = useMutation(api.GameFunctions.endGuessing);
+  const endGuessing = useMutation(api.GameFunctions.startNewTurn);
 
   const myTeamTileType =
     gameState.myTeam === 1n
