@@ -249,6 +249,7 @@ export const makeMove = mutation({
     updatedBoard[tilePos] = {
       ...targetTile,
       isGuessed: true,
+      selectedBy: [],
     };
 
     const updatedTurns = [...game.turns];
@@ -288,27 +289,30 @@ export const makeMove = mutation({
       winnerTeam = Team.Blue;
     }
 
+    let finalBoard = updatedBoard.map((tile) => ({
+      ...tile,
+      selectedBy: [],
+    }));
+
+    let finalTurns = updatedTurns;
+
+    if (winnerTeam === null && (!guessedOwnColor || reachedGuessLimit)) {
+      finalTurns = [
+        ...updatedTurns,
+        {
+          team: switchTeam(flow.activeTeam),
+          guesses: [],
+          status: TurnStatus.Clue,
+        },
+      ];
+    }
+
     await ctx.db.patch(lobby.currentGame, {
-      board: updatedBoard,
-      turns: updatedTurns,
+      board: finalBoard,
+      turns: finalTurns,
       active: winnerTeam === null,
       winnerTeam,
     });
-
-    if (!guessedOwnColor || reachedGuessLimit) {
-      const turn: Turn = {
-        team: switchTeam(flow.activeTeam),
-        guesses: [],
-        status: TurnStatus.Clue,
-      };
-
-      const updatedBoard = game.board.map((tile) => { tile.selectedBy = []; return tile })
-
-      await ctx.db.patch(lobby.currentGame, {
-        board: updatedBoard,
-        turns: [...game.turns, turn],
-      });
-    }
 
     return { success: true };
   },
@@ -477,7 +481,7 @@ export const getPlayerGameState = query({
     const activeRoleNeeded =
       flow.phase === GamePhase.Clue ? Role.Spymaster : Role.Operative;
 
-    const activePlayerNames =  players
+    const activePlayerNames = players
       .filter(p => p.team === flow.activeTeam && p.task === activeRoleNeeded)
       .map(p => p.name);
 
