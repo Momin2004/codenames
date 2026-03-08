@@ -23,6 +23,7 @@ export type GameStateResponse = {
   phase: "clue" | "guess" | "gameOver";
   activeTeam: 1n | 2n | null;
   activeRole: 1n | 2n | null;
+  activePlayers: string[];
   myTeam: 0n | 1n | 2n;
   myRole: 0n | 1n | 2n;
   startingTeam: 1n | 2n;
@@ -78,13 +79,19 @@ export function formatGuessesRemaining(remaining: number | "infinite" | null) {
   if (remaining === "infinite") return "∞";
   return remaining.toString();
 }
+function formatActivePlayers(names: string[]) {
+  if (names.length === 0) return "Players";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
 
 export function getStatusText(gameState: GameStateResponse) {
   if (gameState.phase === "gameOver") {
     return getWinnerText(gameState.winnerTeam);
   }
 
-  const activeTeamLabel = getTeamLabel(gameState.activeTeam);
+  const activePlayersLabel = formatActivePlayers(gameState.activePlayers);
 
   if (gameState.canGiveClue) {
     return "Give your operatives a clue";
@@ -95,10 +102,14 @@ export function getStatusText(gameState: GameStateResponse) {
   }
 
   if (gameState.phase === "clue") {
-    return `${activeTeamLabel} spymaster is giving a clue`;
+    return gameState.activePlayers.length === 1
+      ? `${activePlayersLabel} is giving a clue`
+      : `${activePlayersLabel} are giving a clue`;
   }
 
-  return `${activeTeamLabel} operatives are guessing`;
+  return gameState.activePlayers.length === 1
+    ? `${activePlayersLabel} is guessing`
+    : `${activePlayersLabel} are guessing`;
 }
 
 export function getStatusSubtext(gameState: GameStateResponse) {
