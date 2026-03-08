@@ -9,6 +9,7 @@ interface BoardDisplayProps {
   onTileClick: (tile: Tile) => void;
   onConfirmClick: (tile: Tile) => void;
   canClickTiles?: boolean;
+  isSelected?: boolean;
 }
 
 const useStyles = (columns: number) =>

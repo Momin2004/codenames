@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Tile, TileType } from "@/types/board";
 import { createSxStyles } from "@/utils/createSxStyles";
 import { Box, Card, IconButton, Typography } from "@mui/material";
@@ -14,47 +15,68 @@ interface TileDisplayProps {
 export function getTileBg(tile: Tile) {
   switch (tile.type) {
     case TileType.Red:
-      return "rgba(244, 143, 177, 0.1)";
+      return tile.isGuessed
+        ? "rgba(244, 143, 177, 0.35)"
+        : "rgba(244, 143, 177, 0.16)";
     case TileType.Blue:
-      return "rgba(121, 134, 203, 0.1)";
+      return tile.isGuessed
+        ? "rgba(121, 134, 203, 0.35)"
+        : "rgba(121, 134, 203, 0.16)";
     case TileType.Black:
-      return "rgba(0,0,0,0.5)";
+      return tile.isGuessed
+        ? "rgba(0,0,0,0.35)"
+        : "rgba(0,0,0,0.5)";
     case TileType.Neutral:
-      return "rgba(255,255,255,0.10)";
+      return tile.isGuessed
+        ? "rgba(255,255,255,0.35)"
+        : "rgba(255,255,255,0.10)";
     default:
       return "rgba(15, 34, 39, 0.1)";
   }
 }
 
-function getTileBorder(tile: Tile, team: TileType) {
-  if (tile.type === TileType.Red && team === TileType.Red) return "rgba(244, 143, 177, 1)";
-  if (tile.type === TileType.Blue && team === TileType.Blue) return "rgba(121, 134, 203, 1)";
+function getOwnTeamBorder(tile: Tile, team: TileType) {
+  if (tile.type === TileType.Red && team === TileType.Red) {
+    return "rgba(244, 143, 177, 1)";
+  }
+
+  if (tile.type === TileType.Blue && team === TileType.Blue) {
+    return "rgba(121, 134, 203, 1)";
+  }
+
   return "rgba(0, 0, 0, 0)";
 }
 
 const useStyles = (
   tile: Tile,
   team: TileType,
-  clickable: boolean,
-  hasSelection: boolean
+  canSelect: boolean,
+  hasSelection: boolean,
+  revealTurnedWord: boolean,
 ) => {
   const bg = getTileBg(tile);
-  const border = getTileBorder(tile, team);
+  const ownTeamBorder = getOwnTeamBorder(tile, team);
+
+  const rotation = tile.isGuessed
+    ? "rotateY(180deg)"
+    : hasSelection
+      ? "rotateY(35deg)"
+      : "rotateY(0deg)";
 
   return createSxStyles({
     root: {
       width: 160,
       height: 128,
       perspective: "1000px",
-      cursor: clickable ? "pointer" : "default",
+      cursor: tile.isGuessed || canSelect ? "pointer" : "default",
       position: "relative",
     },
     flipper: {
       position: "relative",
       width: "100%",
       height: "100%",
-      transform: tile.isGuessed ? "rotateY(180deg)" : "rotateY(0deg)",
-      transition: "transform 0.6s",
+      transform: rotation,
+      transition: "transform 0.45s ease",
       transformStyle: "preserve-3d",
     },
     face: {
@@ -66,26 +88,28 @@ const useStyles = (
       justifyContent: "center",
       backfaceVisibility: "hidden",
       WebkitBackfaceVisibility: "hidden",
+      overflow: "hidden",
       borderRadius: 3,
       bgcolor: bg,
       border: "1px solid",
-      borderColor: hasSelection ? "rgba(255,255,255,0.8)" : border,
-      boxShadow: tile.isGuessed
-        ? "0 10px 25px rgba(0,0,0,0.25)"
-        : hasSelection
-          ? "0 0 0 2px rgba(255,255,255,0.18), 0 10px 20px rgba(0,0,0,0.18)"
+      borderColor: ownTeamBorder,
+      transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.2s ease",
+    },
+    front: {
+      boxShadow:
+        hasSelection && !tile.isGuessed
+          ? "0 10px 20px rgba(0,0,0,0.18)"
           : "none",
-      transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
-      "&:hover": clickable
+      "&:hover": canSelect
         ? {
           transform: "translateY(-2px)",
           boxShadow: "0 10px 20px rgba(0,0,0,0.18)",
         }
         : undefined,
     },
-    front: {},
     back: {
       transform: "rotateY(180deg)",
+      boxShadow: tile.isGuessed ? "0 10px 25px rgba(0,0,0,0.25)" : "none",
     },
     word: {
       px: 1.5,
@@ -95,6 +119,32 @@ const useStyles = (
       textTransform: "uppercase",
       userSelect: "none",
       color: "rgba(255,255,255,0.92)",
+      backfaceVisibility: "hidden",
+      WebkitBackfaceVisibility: "hidden",
+    },
+    turnedWord: {
+      px: 1.5,
+      textAlign: "center",
+      fontWeight: 700,
+      fontSize: 13,
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      userSelect: "none",
+      color: "rgba(255,255,255,0.88)",
+      opacity: revealTurnedWord ? 1 : 0,
+      transition: "opacity 0.15s ease",
+      backfaceVisibility: "hidden",
+      WebkitBackfaceVisibility: "hidden",
+    },
+    hintText: {
+      mt: 0.75,
+      fontSize: 11,
+      lineHeight: 1.2,
+      color: "rgba(255,255,255,0.65)",
+      textAlign: "center",
+      px: 1,
+      backfaceVisibility: "hidden",
+      WebkitBackfaceVisibility: "hidden",
     },
     selectedBy: {
       mt: 0.75,
@@ -128,13 +178,33 @@ export const TileDisplay = ({
   onConfirmClick,
   disabled = false,
 }: TileDisplayProps) => {
-  const clickable = !!onClick && !disabled && !tile.isGuessed;
-  const hasSelection = tile.selectedByNames != undefined;
+  const [revealTurnedWord, setRevealTurnedWord] = useState(false);
+
+  const hasSelection = tile.selectedByNames.length > 0;
   const showConfirmButton = tile.selectedByMe && !tile.isGuessed && !disabled;
-  const styles = useStyles(tile, team, clickable, hasSelection);
+  const canSelect = !disabled && !tile.isGuessed;
+
+  const styles = useStyles(
+    tile,
+    team,
+    canSelect,
+    hasSelection,
+    revealTurnedWord,
+  );
+
+  const handleRootClick = () => {
+    if (tile.isGuessed) {
+      setRevealTurnedWord((prev) => !prev);
+      return;
+    }
+
+    if (canSelect) {
+      onClick();
+    }
+  };
 
   return (
-    <Box sx={styles.root} onClick={clickable ? onClick : undefined}>
+    <Box sx={styles.root} onClick={handleRootClick}>
       {showConfirmButton && (
         <IconButton
           sx={styles.confirmButton}
@@ -149,9 +219,11 @@ export const TileDisplay = ({
 
       <Box sx={styles.flipper}>
         <Card sx={{ ...styles.face, ...styles.front }}>
-          <Typography sx={styles.word}>{tile.word || "—"}</Typography>
+          {!tile.isGuessed && (
+            <Typography sx={styles.word}>{tile.word || "—"}</Typography>
+          )}
 
-          {hasSelection && (
+          {hasSelection && !tile.isGuessed && (
             <Typography sx={styles.selectedBy}>
               {tile.selectedByNames.join(", ")}
             </Typography>
@@ -159,12 +231,24 @@ export const TileDisplay = ({
         </Card>
 
         <Card sx={{ ...styles.face, ...styles.back }}>
-          <Typography sx={styles.word}>{tile.word || "—"}</Typography>
+          {tile.isGuessed ? (
+            <>
+              <Typography sx={styles.turnedWord}>
+                {tile.word || "—"}
+              </Typography>
 
-          {hasSelection && (
-            <Typography sx={styles.selectedBy}>
-              {tile.selectedByNames.join(", ")}
-            </Typography>
+              {!revealTurnedWord && (
+                <Typography sx={styles.hintText}>
+                  Tap to reveal
+                </Typography>
+              )}
+            </>
+          ) : (
+            hasSelection && (
+              <Typography sx={styles.selectedBy}>
+                {tile.selectedByNames.join(", ")}
+              </Typography>
+            )
           )}
         </Card>
       </Box>
