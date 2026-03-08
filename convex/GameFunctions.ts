@@ -295,14 +295,17 @@ export const makeMove = mutation({
       winnerTeam,
     });
 
-    if (hitBlack || !guessedOwnColor || reachedGuessLimit) {
+    if (!guessedOwnColor || reachedGuessLimit) {
       const turn: Turn = {
         team: switchTeam(flow.activeTeam),
         guesses: [],
         status: TurnStatus.Clue,
       };
 
+      const updatedBoard = game.board.map((tile) => {tile.selectedBy = []; return tile})
+    
       await ctx.db.patch(lobby.currentGame, {
+        board: updatedBoard,
         turns: [...game.turns, turn],
       });
     }
