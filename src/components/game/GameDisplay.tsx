@@ -32,6 +32,7 @@ export const GameDisplay = ({
   const makeMove = useMutation(api.GameFunctions.makeMove);
   const endGuessing = useMutation(api.GameFunctions.startNewTurn);
   const selectTile = useMutation(api.GameFunctions.selectCard);
+  const endGame = useMutation(api.GameFunctions.endGamee);
 
   const myTeamTileType =
     gameState.myTeam === 1n
@@ -63,6 +64,13 @@ export const GameDisplay = ({
 
     await endGuessing({ playerId });
   };
+
+  const handleEndGame = async () => {
+    if (gameState.phase !== GamePhase.GameOver) return;
+
+    await endGame({ playerId });
+  };
+
 
   return (
     <Box
@@ -147,6 +155,20 @@ export const GameDisplay = ({
               }}
             >
               End guessing
+            </Button>
+          )}
+
+          {gameState.phase === GamePhase.GameOver && (
+            <Button
+              variant="contained"
+              onClick={handleEndGame}
+              sx={{
+                mt: 1,
+                borderRadius: 2,
+                px: 3,
+              }}
+            >
+              End game
             </Button>
           )}
 

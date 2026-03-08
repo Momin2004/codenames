@@ -81,7 +81,8 @@ export const endGamee = mutation({
     playerId: v.id("player"),
   },
 
-  handler: async (ctx, args) => {    const player = await ctx.db.get(args.playerId);
+  handler: async (ctx, args) => {
+    const player = await ctx.db.get(args.playerId);
     if (!player) throw new Error("Player not found");
     if (!player.currentLobby) throw new Error("Lobby not found");
 
@@ -91,12 +92,11 @@ export const endGamee = mutation({
 
     const game = await ctx.db.get(lobby.currentGame);
     if (!game) throw new Error("Game not found");
-    if (!game.active) throw new Error("Game is not active");
 
     const flow = getFlow(game);
 
     if (flow.phase === GamePhase.GameOver) {
-      await ctx.db.patch(player.currentLobby, {currentGame: null})
+      await ctx.db.patch(player.currentLobby, { currentGame: null })
       return { success: true };
     }
     throw Error("gamestate not over")
