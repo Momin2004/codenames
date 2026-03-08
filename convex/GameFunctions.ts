@@ -85,7 +85,6 @@ export const startNewTurn = mutation({
     const player = await ctx.db.get(args.playerId);
     if (!player) throw new Error("Player not found");
     if (!player.currentLobby) throw new Error("Lobby not found");
-<<<<<<< Updated upstream
     if (player.task !== Role.Operative) throw new Error("Player must be operative");
 
     const lobby = await ctx.db.get(player.currentLobby);
